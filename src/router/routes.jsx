@@ -3,12 +3,13 @@ import { Routes, Route, Navigate } from "react-router-dom";
 /* import { useAuth } from './../hooks/useAuth'; */
 
 import Login from "../pages/Auth/Login";
-/* import Register from './pages/public/Register';
-import Home from './pages/public/Home';
-import NotFound from './pages/public/NotFound'; */
+// import Register from './pages/public/Register';
+// import Home from './pages/public/Home';
+import NotFoundPage from "../pages/NotFoundPage";
 
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import AdminLayout from "../layouts/AdminLayout";
+
 
 /* import ManagerDashboard from './pages/manager/ManagerDashboard';
 import ResidentDashboard from './pages/resident/ResidentDashboard'; */
@@ -27,8 +28,8 @@ export default function AppRoutes() {
       {/* Public routes */}
       {/* <Route path="/" element={<Home />} /> */}
       <Route path="/login" element={<Login />} />
-      {/* <Route path="/register" element={<Register />} />
-      <Route path="*" element={<NotFound />} /> */}
+      {/* <Route path="/register" element={<Register />} /> */}
+      <Route path="*" element={<NotFoundPage />} />
 
       {/* Admin routes */}
       <Route
