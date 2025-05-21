@@ -9,7 +9,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import AdminLayout from "../layouts/AdminLayout";
-
+import UserManagement from "../pages/Admin/UserManagement/UserManagement";
 
 /* import ManagerDashboard from './pages/manager/ManagerDashboard';
 import ResidentDashboard from './pages/resident/ResidentDashboard'; */
@@ -38,6 +38,16 @@ export default function AppRoutes() {
           <RequireAuth role="admin">
             <AdminLayout>
               <AdminDashboard></AdminDashboard>
+            </AdminLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <RequireAuth role="admin">
+            <AdminLayout>
+              <UserManagement />
             </AdminLayout>
           </RequireAuth>
         }
