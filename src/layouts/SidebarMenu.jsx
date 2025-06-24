@@ -1,6 +1,6 @@
-import React from 'react';
-import { Menu } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
+import React from "react";
+import { Menu } from "antd";
+import { Link, useLocation } from "react-router-dom";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -15,161 +15,173 @@ import {
   DollarOutlined,
   ShopOutlined,
   SafetyCertificateOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 
-const SidebarMenu = ({ collapsed, userRole = 'admin' }) => {
+const SidebarMenu = ({ collapsed, userRole = "admin" }) => {
   const location = useLocation();
 
   const getMenuItems = () => {
     const adminMenuItems = [
       {
-        key: '/admin/dashboard',
+        key: "/admin/dashboard",
         icon: <DashboardOutlined />,
         label: <Link to="/admin/dashboard">Dashboard</Link>,
       },
       {
-        type: 'divider',
+        type: "divider",
       },
       {
-        key: 'user-management',
-        label: 'Quản lý người dùng',
+        key: "user-management",
+        label: "Quản lý người dùng",
         icon: <UserOutlined />,
         children: [
           {
-            key: '/admin/users',
+            key: "/admin/users",
             label: <Link to="/admin/users">Tài khoản hệ thống</Link>,
           },
           {
-            key: '/admin/residents',
+            key: "/admin/residents",
             label: <Link to="/admin/residents">Cư dân</Link>,
           },
         ],
       },
       {
-        key: 'property-management',
-        label: 'Quản lý tài sản',
+        key: "property-management",
+        label: "Quản lý tài sản",
         icon: <HomeOutlined />,
         children: [
           {
-            key: '/admin/apartments',
+            key: "/admin/apartments",
             label: <Link to="/admin/apartments">Căn hộ</Link>,
           },
           {
-            key: '/admin/services',
+            key: "/admin/apartment-types",
+            label: <Link to="/admin/apartment-types">Loại căn hộ</Link>,
+          },
+          {
+            key: "/admin/services",
             label: <Link to="/admin/services">Dịch vụ</Link>,
+          },
+          {
+            key: "/admin/service-registrations",
+            label: (
+              <Link to="/admin/service-registrations">Đăng ký dịch vụ</Link>
+            ),
           },
         ],
       },
       {
-        key: 'financial-management',
-        label: 'Quản lý tài chính',
+        key: "financial-management",
+        label: "Quản lý tài chính",
         icon: <DollarOutlined />,
         children: [
           {
-            key: '/admin/invoices',
+            key: "/admin/invoices",
             label: <Link to="/admin/invoices">Hóa đơn</Link>,
           },
         ],
       },
       {
-        key: 'operations',
-        label: 'Vận hành',
+        key: "operations",
+        label: "Vận hành",
         icon: <ToolOutlined />,
         children: [
           {
-            key: '/admin/maintenance',
+            key: "/admin/maintenance",
             label: <Link to="/admin/maintenance">Bảo trì</Link>,
           },
           {
-            key: '/admin/feedback',
+            key: "/admin/feedback",
             label: <Link to="/admin/feedback">Phản hồi</Link>,
           },
         ],
       },
       {
-        key: 'communications',
-        label: 'Truyền thông',
+        key: "communications",
+        label: "Truyền thông",
         icon: <BellOutlined />,
         children: [
           {
-            key: '/admin/notifications',
+            key: "/admin/notifications",
             label: <Link to="/admin/notifications">Thông báo & Sự kiện</Link>,
           },
         ],
       },
       {
-        key: '/admin/reports',
+        key: "/admin/reports",
         icon: <BarChartOutlined />,
         label: <Link to="/admin/reports">Báo cáo & Thống kê</Link>,
       },
-    ];    const managerMenuItems = [
+    ];
+    const managerMenuItems = [
       {
-        key: '/manager/dashboard',
+        key: "/manager/dashboard",
         icon: <DashboardOutlined />,
         label: <Link to="/manager/dashboard">Dashboard</Link>,
       },
       {
-        key: '/manager/residents',
+        key: "/manager/residents",
         icon: <TeamOutlined />,
         label: <Link to="/manager/residents">Quản lý cư dân</Link>,
       },
       {
-        key: '/manager/maintenance',
+        key: "/manager/maintenance",
         icon: <ToolOutlined />,
         label: <Link to="/manager/maintenance">Bảo trì</Link>,
       },
       {
-        key: '/manager/feedback',
+        key: "/manager/feedback",
         icon: <MessageOutlined />,
         label: <Link to="/manager/feedback">Phản hồi</Link>,
       },
       {
-        key: '/manager/reports',
+        key: "/manager/reports",
         icon: <BarChartOutlined />,
         label: <Link to="/manager/reports">Báo cáo</Link>,
       },
-    ];const residentMenuItems = [
+    ];
+    const residentMenuItems = [
       {
-        key: '/resident/dashboard',
+        key: "/resident/dashboard",
         icon: <DashboardOutlined />,
         label: <Link to="/resident/dashboard">Trang chủ</Link>,
       },
       {
-        key: '/resident/profile',
+        key: "/resident/profile",
         icon: <UserOutlined />,
         label: <Link to="/resident/profile">Hồ sơ cá nhân</Link>,
       },
       {
-        key: '/resident/bills',
+        key: "/resident/bills",
         icon: <DollarOutlined />,
         label: <Link to="/resident/bills">Hóa đơn của tôi</Link>,
       },
       {
-        key: '/resident/maintenance',
+        key: "/resident/maintenance",
         icon: <ToolOutlined />,
         label: <Link to="/resident/maintenance">Yêu cầu bảo trì</Link>,
       },
       {
-        key: '/resident/services',
+        key: "/resident/services",
         icon: <ShopOutlined />,
         label: <Link to="/resident/services">Dịch vụ cư dân</Link>,
       },
       {
-        key: '/resident/feedback',
+        key: "/resident/feedback",
         icon: <MessageOutlined />,
         label: <Link to="/resident/feedback">Gửi phản hồi</Link>,
       },
       {
-        key: '/resident/notifications',
+        key: "/resident/notifications",
         icon: <BellOutlined />,
         label: <Link to="/resident/notifications">Thông báo</Link>,
       },
     ];
 
     switch (userRole) {
-      case 'manager':
+      case "manager":
         return managerMenuItems;
-      case 'resident':
+      case "resident":
         return residentMenuItems;
       default:
         return adminMenuItems;
@@ -181,18 +193,18 @@ const SidebarMenu = ({ collapsed, userRole = 'admin' }) => {
       mode="inline"
       selectedKeys={[location.pathname]}
       defaultOpenKeys={[
-        'user-management', 
-        'property-management', 
-        'financial-management', 
-        'operations', 
-        'communications'
+        "user-management",
+        "property-management",
+        "financial-management",
+        "operations",
+        "communications",
       ]}
       inlineCollapsed={collapsed}
-      style={{ 
-        height: '100%', 
+      style={{
+        height: "100%",
         borderRight: 0,
-        background: 'transparent',
-        paddingTop: '8px',
+        background: "transparent",
+        paddingTop: "8px",
       }}
       theme="dark"
       items={getMenuItems()}
