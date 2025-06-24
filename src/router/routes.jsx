@@ -11,7 +11,9 @@ import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import UserManagement from "../pages/Admin/UserManagement/UserManagement";
 import ResidentManagement from "../pages/Admin/ResidentManagement/ResidentManagement";
 import ApartmentManagement from "../pages/Admin/ApartmentManagement/ApartmentManagement";
+import ApartmentTypeManagement from "../pages/Admin/ApartmentTypeManagement/ApartmentTypeManagement";
 import ServiceManagement from "../pages/Admin/ServiceManagement/ServiceManagement";
+import ServiceRegistrationManagement from "../pages/Admin/ServiceRegistrationManagement/ServiceRegistrationManagement";
 import BillManagement from "../pages/Admin/BillManagement/BillManagement";
 import MaintenanceManagement from "../pages/Admin/MaintenanceManagement/MaintenanceManagement";
 import FeedbackManagement from "../pages/Admin/FeedbackManagement/FeedbackManagement";
@@ -26,27 +28,18 @@ import {
   ResidentMaintenance,
   ResidentFeedback,
   ResidentNotifications,
-  ResidentServices
+  ResidentServices,
 } from "../pages/Resident";
 
 // Manager Pages
-import {
-  ManagerDashboard,
-  ManagerReports
-} from "../pages/Manager";
+import { ManagerDashboard, ManagerReports } from "../pages/Manager";
 
-// Layout
+// Layout and Components
 import AdminLayout from "../layouts/AdminLayout";
-
-const RequireAuth = ({ children }) => {
-  // const user = JSON.parse(localStorage.getItem("user")); // Bạn có thể thay bằng context
-  // if (!user || !user.token) return <Navigate to="/login" />;
-  // if (user.role !== role) return <Navigate to="/unauthorized" />;
-  return children;
-};
+import { ProtectedRoute, DashboardRedirect } from "../components";
 
 // Placeholder Pages
-const PlaceholderPage = ({ title, description, gradient }) => (
+const PlaceholderPage = ({ title, description }) => (
   <div style={{ padding: 48, textAlign: "center" }}>
     <h1 style={{ fontSize: 36 }}>{title}</h1>
     <p style={{ fontSize: 16 }}>{description}</p>
@@ -58,103 +51,155 @@ const PlaceholderPage = ({ title, description, gradient }) => (
 
 export default function AppRoutes() {
   return (
-    <Routes>      {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/manager/dashboard" replace />} />
-        {/* Public Routes */}
+    <Routes>
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      {/* Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      
-      {/* Admin Routes - Sử dụng /* để match tất cả sub-routes */}
-      <Route path="/admin/*" element={
-        <RequireAuth>
-          <AdminLayout>
-            <Routes>
-              <Route path="" element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="residents" element={<ResidentManagement />} />
-              <Route path="apartments" element={<ApartmentManagement />} />
-              <Route path="services" element={<ServiceManagement />} />
-              <Route path="invoices" element={<BillManagement />} />
-              <Route path="maintenance" element={<MaintenanceManagement />} />
-              <Route path="feedback" element={<FeedbackManagement />} />
-              <Route path="notifications" element={<EventNotificationManagement />} />
-              <Route path="reports" element={<ReportManagement />} />
-              
-              {/* Placeholder routes */}
-              <Route path="users/add" element={
-                <PlaceholderPage
-                  title="Thêm Tài Khoản"
-                  description="Trang thêm tài khoản mới cho hệ thống"
+
+      {/* Dashboard redirect - auto redirect based on role */}
+      <Route path="/dashboard" element={<DashboardRedirect />} />
+
+      {/* Admin Routes */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLayout>
+              <Routes>
+                <Route path="" element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />{" "}
+                <Route path="users" element={<UserManagement />} />
+                <Route path="residents" element={<ResidentManagement />} />
+                <Route path="apartments" element={<ApartmentManagement />} />
+                <Route
+                  path="apartment-types"
+                  element={<ApartmentTypeManagement />}
+                />{" "}
+                <Route path="services" element={<ServiceManagement />} />
+                <Route
+                  path="service-registrations"
+                  element={<ServiceRegistrationManagement />}
                 />
-              } />
-              <Route path="users/:id/edit" element={
-                <PlaceholderPage
-                  title="Chỉnh Sửa Tài Khoản"
-                  description="Trang chỉnh sửa thông tin tài khoản"
+                <Route path="invoices" element={<BillManagement />} />
+                <Route path="maintenance" element={<MaintenanceManagement />} />
+                <Route path="feedback" element={<FeedbackManagement />} />
+                <Route
+                  path="notifications"
+                  element={<EventNotificationManagement />}
                 />
-              } />
-              <Route path="residents/add" element={
-                <PlaceholderPage
-                  title="Thêm Cư Dân"
-                  description="Trang đăng ký cư dân mới"
+                <Route path="reports" element={<ReportManagement />} />
+                {/* Placeholder routes */}
+                <Route
+                  path="users/add"
+                  element={
+                    <PlaceholderPage
+                      title="Thêm Tài Khoản"
+                      description="Trang thêm tài khoản mới cho hệ thống"
+                    />
+                  }
                 />
-              } />
-              <Route path="apartments/:id/details" element={
-                <PlaceholderPage
-                  title="Chi Tiết Căn Hộ"
-                  description="Thông tin chi tiết và lịch sử căn hộ"
+                <Route
+                  path="users/:id/edit"
+                  element={
+                    <PlaceholderPage
+                      title="Chỉnh Sửa Tài Khoản"
+                      description="Trang chỉnh sửa thông tin tài khoản"
+                    />
+                  }
                 />
-              } />
-            </Routes>
-          </AdminLayout>
-        </RequireAuth>
-      } />      {/* Manager Routes */}
-      <Route path="/manager/*" element={
-        <RequireAuth>
-          <AdminLayout>
-            <Routes>
-              <Route path="" element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<ManagerDashboard />} />
-              <Route path="residents" element={<ResidentManagement />} />
-              <Route path="maintenance" element={<MaintenanceManagement />} />
-              <Route path="feedback" element={<FeedbackManagement />} />
-              <Route path="reports" element={<ManagerReports />} />
-            </Routes>
-          </AdminLayout>
-        </RequireAuth>
-      } />{/* Resident Routes */}
-      <Route path="/resident/*" element={
-        <RequireAuth>
-          <AdminLayout>
-            <Routes>
-              <Route path="" element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<ResidentDashboard />} />
-              <Route path="profile" element={<ResidentProfile />} />
-              <Route path="bills" element={<ResidentBills />} />
-              <Route path="maintenance" element={<ResidentMaintenance />} />
-              <Route path="feedback" element={<ResidentFeedback />} />
-              <Route path="services" element={<ResidentServices />} />
-              <Route path="notifications" element={<ResidentNotifications />} />
-            </Routes>
-          </AdminLayout>
-        </RequireAuth>
-      } />
+                <Route
+                  path="residents/add"
+                  element={
+                    <PlaceholderPage
+                      title="Thêm Cư Dân"
+                      description="Trang đăng ký cư dân mới"
+                    />
+                  }
+                />
+                <Route
+                  path="apartments/:id/details"
+                  element={
+                    <PlaceholderPage
+                      title="Chi Tiết Căn Hộ"
+                      description="Thông tin chi tiết và lịch sử căn hộ"
+                    />
+                  }
+                />
+              </Routes>
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Manager Routes */}
+      <Route
+        path="/manager/*"
+        element={
+          <ProtectedRoute requiredRole="manager">
+            <AdminLayout>
+              <Routes>
+                <Route path="" element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<ManagerDashboard />} />
+                <Route path="residents" element={<ResidentManagement />} />
+                <Route path="maintenance" element={<MaintenanceManagement />} />
+                <Route path="feedback" element={<FeedbackManagement />} />
+                <Route path="reports" element={<ManagerReports />} />
+              </Routes>
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Resident Routes */}
+      <Route
+        path="/resident/*"
+        element={
+          <ProtectedRoute requiredRole="resident">
+            <AdminLayout>
+              <Routes>
+                <Route path="" element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<ResidentDashboard />} />
+                <Route path="profile" element={<ResidentProfile />} />
+                <Route path="bills" element={<ResidentBills />} />
+                <Route path="maintenance" element={<ResidentMaintenance />} />
+                <Route path="feedback" element={<ResidentFeedback />} />
+                <Route path="services" element={<ResidentServices />} />
+                <Route
+                  path="notifications"
+                  element={<ResidentNotifications />}
+                />
+              </Routes>
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Error Routes */}
-      <Route path="/unauthorized" element={
-        <div style={{ padding: 48, textAlign: "center" }}>
-          <h1 style={{ fontSize: 72, color: "#f5222d" }}>403</h1>
-          <h2>Không có quyền truy cập</h2>
-          <button
-            onClick={() => window.history.back()}
-            style={{ padding: 12, background: "#1890ff", color: "#fff", border: 'none', borderRadius: 4, cursor: 'pointer' }}
-          >
-            Quay lại
-          </button>
-        </div>
-      } />
+      <Route
+        path="/unauthorized"
+        element={
+          <div style={{ padding: 48, textAlign: "center" }}>
+            <h1 style={{ fontSize: 72, color: "#f5222d" }}>403</h1>
+            <h2>Không có quyền truy cập</h2>
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                padding: 12,
+                background: "#1890ff",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                cursor: "pointer",
+              }}
+            >
+              Quay lại
+            </button>
+          </div>
+        }
+      />
 
       {/* 404 Not Found */}
       <Route path="*" element={<NotFoundPage />} />
