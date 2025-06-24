@@ -5,4 +5,6 @@ export { default as apartmentService } from "./apartmentService";
 export { default as apartmentTypeService } from "./apartmentTypeService";
 export { default as serviceTypeService } from "./serviceTypeService";
 export { default as serviceRegistrationService } from "./serviceRegistrationService";
+export { default as feedbackService } from "./feedbackService";
+export { default as maintenanceService } from "./maintenanceService";
 export * from "./apiService";
