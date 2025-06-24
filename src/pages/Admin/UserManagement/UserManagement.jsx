@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Table,
@@ -17,7 +17,8 @@ import {
   Popconfirm,
   message,
   Tooltip,
-  Badge
+  Badge,
+  DatePicker,
 } from "antd";
 import {
   UserOutlined,
@@ -32,8 +33,10 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   MailOutlined,
-  PhoneOutlined
+  PhoneOutlined,
 } from "@ant-design/icons";
+import { userService } from "../../../services";
+import dayjs from "dayjs";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -43,156 +46,183 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
+  const [users, setUsers] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [userStats, setUserStats] = useState({});
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
-  // Dữ liệu mẫu người dùng
-  const [users, setUsers] = useState([
-    {
-      id: '1',
-      name: 'Admin Nguyễn Văn A',
-      email: 'admin@linkoma.com',
-      phone: '0912345678',
-      role: 'admin',
-      status: 'active',
-      avatar: null,
-      lastLogin: '2024-12-20 10:30',
-      createdAt: '2024-01-15',
-      department: 'IT'
-    },
-    {
-      id: '2',
-      name: 'Quản lý Trần Thị B',
-      email: 'manager.tran@linkoma.com',
-      phone: '0923456789',
-      role: 'manager',
-      status: 'active',
-      avatar: null,
-      lastLogin: '2024-12-20 09:15',
-      createdAt: '2024-02-20',
-      department: 'Quản lý'
-    },
-    {
-      id: '3',
-      name: 'Nhân viên Lê Văn C',
-      email: 'staff.le@linkoma.com',
-      phone: '0934567890',
-      role: 'staff',
-      status: 'inactive',
-      avatar: null,
-      lastLogin: '2024-12-18 14:20',
-      createdAt: '2024-03-10',
-      department: 'Kỹ thuật'
-    },
-    {
-      id: '4',
-      name: 'Cư dân Phạm Thị D',
-      email: 'resident.pham@gmail.com',
-      phone: '0945678901',
-      role: 'resident',
-      status: 'active',
-      avatar: null,
-      lastLogin: '2024-12-20 08:45',
-      createdAt: '2024-04-05',
-      department: 'Cư dân'
-    },
-    {
-      id: '5',
-      name: 'Bảo vệ Hoàng Văn E',
-      email: 'security.hoang@linkoma.com',
-      phone: '0956789012',
-      role: 'security',
-      status: 'active',
-      avatar: null,
-      lastLogin: '2024-12-20 07:00',
-      createdAt: '2024-05-12',
-      department: 'Bảo vệ'
+  // Load data khi component mount
+  useEffect(() => {
+    loadUsers();
+    loadUserStats();
+  }, []);
+
+  // Load danh sách users
+  const loadUsers = async (page = 1, limit = 10) => {
+    try {
+      setLoading(true);
+      const response = await userService.getAllUsers(page, limit);
+      setUsers(response.data || []);
+      setPagination({
+        current: page,
+        pageSize: limit,
+        total: response.totalCount || 0,
+      });
+      setTotalUsers(response.totalCount || 0);
+    } catch (error) {
+      message.error("Không thể tải danh sách người dùng");
+      console.error("Error loading users:", error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  // Load thống kê users
+  const loadUserStats = async () => {
+    try {
+      const stats = await userService.getUserStats();
+      setUserStats(stats);
+    } catch (error) {
+      console.error("Error loading user stats:", error);
+    }
+  };
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'admin': return '#ff4d4f';
-      case 'manager': return '#722ed1';
-      case 'staff': return '#1890ff';
-      case 'resident': return '#52c41a';
-      case 'security': return '#faad14';
-      default: return '#666';
+      case "admin":
+        return "#ff4d4f";
+      case "manager":
+        return "#722ed1";
+      case "staff":
+        return "#1890ff";
+      case "resident":
+        return "#52c41a";
+      case "security":
+        return "#faad14";
+      default:
+        return "#666";
     }
   };
 
   const getRoleText = (role) => {
     switch (role) {
-      case 'admin': return 'Quản trị viên';
-      case 'manager': return 'Quản lý';
-      case 'staff': return 'Nhân viên';
-      case 'resident': return 'Cư dân';
-      case 'security': return 'Bảo vệ';
-      default: return 'Không xác định';
+      case "admin":
+        return "Quản trị viên";
+      case "manager":
+        return "Quản lý";
+      case "staff":
+        return "Nhân viên";
+      case "resident":
+        return "Cư dân";
+      case "security":
+        return "Bảo vệ";
+      default:
+        return "Không xác định";
     }
   };
 
   const getRoleIcon = (role) => {
     switch (role) {
-      case 'admin': return <CrownOutlined />;
-      case 'manager': return <SettingOutlined />;
-      case 'staff': return <UserOutlined />;
-      case 'resident': return <TeamOutlined />;
-      case 'security': return <CheckCircleOutlined />;
-      default: return <UserOutlined />;
+      case "admin":
+        return <CrownOutlined />;
+      case "manager":
+        return <SettingOutlined />;
+      case "staff":
+        return <UserOutlined />;
+      case "resident":
+        return <TeamOutlined />;
+      case "security":
+        return <CheckCircleOutlined />;
+      default:
+        return <UserOutlined />;
     }
   };
-
   const columns = [
     {
-      title: 'Người dùng',
-      key: 'user',
+      title: "Người dùng",
+      key: "user",
       render: (_, record) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar 
-            size={40} 
-            icon={<UserOutlined />} 
-            style={{ 
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
+            style={{
               backgroundColor: getRoleColor(record.role),
-              marginRight: '12px'
+              marginRight: "12px",
             }}
           />
           <div>
-            <Text strong style={{ fontSize: '14px' }}>{record.name}</Text>
+            <Text strong style={{ fontSize: "14px" }}>
+              {record.name || "Chưa cập nhật"}
+            </Text>
             <br />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              ID: {record.id}
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              ID: {record.userId}
             </Text>
           </div>
         </div>
       ),
     },
     {
-      title: 'Liên hệ',
-      key: 'contact',
+      title: "Liên hệ",
+      key: "contact",
       render: (_, record) => (
         <div>
-          <div style={{ marginBottom: '4px' }}>
-            <MailOutlined style={{ marginRight: '6px', color: '#1890ff' }} />
-            <Text style={{ fontSize: '13px' }}>{record.email}</Text>
+          <div style={{ marginBottom: "4px" }}>
+            <MailOutlined style={{ marginRight: "6px", color: "#1890ff" }} />
+            <Text style={{ fontSize: "13px" }}>{record.email}</Text>
           </div>
           <div>
-            <PhoneOutlined style={{ marginRight: '6px', color: '#52c41a' }} />
-            <Text style={{ fontSize: '13px' }}>{record.phone}</Text>
+            <PhoneOutlined style={{ marginRight: "6px", color: "#52c41a" }} />
+            <Text style={{ fontSize: "13px" }}>
+              {record.phoneNumber || "Chưa cập nhật"}
+            </Text>
           </div>
         </div>
       ),
     },
     {
-      title: 'Vai trò',
-      dataIndex: 'role',
-      key: 'role',
+      title: "Thông tin cá nhân",
+      key: "personal",
+      render: (_, record) => (
+        <div>
+          <div style={{ marginBottom: "4px" }}>
+            <Text style={{ fontSize: "12px" }}>
+              <strong>CCCD:</strong> {record.citizenId || "Chưa cập nhật"}
+            </Text>
+          </div>
+          <div style={{ marginBottom: "4px" }}>
+            <Text style={{ fontSize: "12px" }}>
+              <strong>Ngày sinh:</strong>{" "}
+              {record.dateOfBirth
+                ? dayjs(record.dateOfBirth).format("DD/MM/YYYY")
+                : "Chưa cập nhật"}
+            </Text>
+          </div>
+          <div>
+            <Text style={{ fontSize: "12px" }}>
+              <strong>Căn hộ:</strong> {record.apartmentId || "Chưa có"}
+            </Text>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Vai trò",
+      dataIndex: "role",
+      key: "role",
       filters: [
-        { text: 'Quản trị viên', value: 'admin' },
-        { text: 'Quản lý', value: 'manager' },
-        { text: 'Nhân viên', value: 'staff' },
-        { text: 'Cư dân', value: 'resident' },
-        { text: 'Bảo vệ', value: 'security' },
+        { text: "Quản trị viên", value: "admin" },
+        { text: "Quản lý", value: "manager" },
+        { text: "Nhân viên", value: "staff" },
+        { text: "Cư dân", value: "resident" },
+        { text: "Bảo vệ", value: "security" },
       ],
       onFilter: (value, record) => record.role === value,
       render: (role) => (
@@ -202,35 +232,37 @@ const UserManagement = () => {
       ),
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
       filters: [
-        { text: 'Hoạt động', value: 'active' },
-        { text: 'Không hoạt động', value: 'inactive' },
+        { text: "Hoạt động", value: "active" },
+        { text: "Không hoạt động", value: "inactive" },
       ],
       onFilter: (value, record) => record.status === value,
       render: (status) => (
-        <Badge 
-          status={status === 'active' ? 'success' : 'default'} 
-          text={status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+        <Badge
+          status={status === "active" ? "success" : "default"}
+          text={status === "active" ? "Hoạt động" : "Không hoạt động"}
         />
       ),
     },
     {
-      title: 'Lần đăng nhập cuối',
-      dataIndex: 'lastLogin',
-      key: 'lastLogin',
-      render: (lastLogin) => (
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (createdAt) => (
         <div>
-          <ClockCircleOutlined style={{ marginRight: '6px', color: '#666' }} />
-          <Text style={{ fontSize: '12px' }}>{lastLogin}</Text>
+          <ClockCircleOutlined style={{ marginRight: "6px", color: "#666" }} />
+          <Text style={{ fontSize: "12px" }}>
+            {dayjs(createdAt).format("DD/MM/YYYY HH:mm")}
+          </Text>
         </div>
       ),
     },
     {
-      title: 'Thao tác',
-      key: 'action',
+      title: "Thao tác",
+      key: "action",
       width: 150,
       render: (_, record) => (
         <Space size="small">
@@ -254,7 +286,7 @@ const UserManagement = () => {
           <Tooltip title="Xóa">
             <Popconfirm
               title="Bạn có chắc muốn xóa người dùng này?"
-              onConfirm={() => handleDeleteUser(record.id)}
+              onConfirm={() => handleDeleteUser(record.userId)}
               okText="Có"
               cancelText="Không"
             >
@@ -276,186 +308,339 @@ const UserManagement = () => {
     form.resetFields();
     setModalVisible(true);
   };
-
   const handleEditUser = (user) => {
     setEditingUser(user);
-    form.setFieldsValue(user);
+    // Map dữ liệu từ API sang form
+    form.setFieldsValue({
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      citizenId: user.citizenId,
+      address: user.address,
+      licensePlate: user.licensePlate,
+      apartmentId: user.apartmentId,
+      role: user.role,
+      status: user.status,
+      dateOfBirth: user.dateOfBirth ? dayjs(user.dateOfBirth) : null,
+    });
     setModalVisible(true);
   };
-
   const handleViewUser = (user) => {
     Modal.info({
-      title: 'Thông tin chi tiết người dùng',
-      width: 500,
+      title: "Thông tin chi tiết người dùng",
+      width: 600,
       content: (
-        <div style={{ padding: '16px 0' }}>
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <Avatar size={80} icon={<UserOutlined />} style={{ backgroundColor: getRoleColor(user.role) }} />
-            <Title level={4} style={{ margin: '8px 0' }}>{user.name}</Title>
+        <div style={{ padding: "16px 0" }}>
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <Avatar
+              size={80}
+              icon={<UserOutlined />}
+              style={{ backgroundColor: getRoleColor(user.role) }}
+            />
+            <Title level={4} style={{ margin: "8px 0" }}>
+              {user.name || "Chưa cập nhật"}
+            </Title>
             <Tag color={getRoleColor(user.role)} icon={getRoleIcon(user.role)}>
               {getRoleText(user.role)}
             </Tag>
           </div>
           <div>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Điện thoại:</strong> {user.phone}</p>
-            <p><strong>Phòng ban:</strong> {user.department}</p>
-            <p><strong>Trạng thái:</strong> {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}</p>
-            <p><strong>Lần đăng nhập cuối:</strong> {user.lastLogin}</p>
-            <p><strong>Ngày tạo:</strong> {user.createdAt}</p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Điện thoại:</strong> {user.phoneNumber || "Chưa cập nhật"}
+            </p>
+            <p>
+              <strong>CCCD:</strong> {user.citizenId || "Chưa cập nhật"}
+            </p>
+            <p>
+              <strong>Ngày sinh:</strong>{" "}
+              {user.dateOfBirth
+                ? dayjs(user.dateOfBirth).format("DD/MM/YYYY")
+                : "Chưa cập nhật"}
+            </p>
+            <p>
+              <strong>Địa chỉ:</strong> {user.address || "Chưa cập nhật"}
+            </p>
+            <p>
+              <strong>Biển số xe:</strong> {user.licensePlate || "Chưa có"}
+            </p>
+            <p>
+              <strong>Căn hộ:</strong> {user.apartmentId || "Chưa có"}
+            </p>
+            <p>
+              <strong>Trạng thái:</strong>{" "}
+              {user.status === "active" ? "Hoạt động" : "Không hoạt động"}
+            </p>
+            <p>
+              <strong>Ngày tạo:</strong>{" "}
+              {dayjs(user.createdAt).format("DD/MM/YYYY HH:mm")}
+            </p>
+            <p>
+              <strong>Ngày cập nhật:</strong>{" "}
+              {dayjs(user.updatedAt).format("DD/MM/YYYY HH:mm")}
+            </p>
           </div>
         </div>
       ),
     });
   };
 
-  const handleDeleteUser = (id) => {
-    setUsers(users.filter(user => user.id !== id));
-    message.success('Đã xóa người dùng thành công!');
+  const handleDeleteUser = async (userId) => {
+    try {
+      setLoading(true);
+      await userService.deleteUser(userId);
+      message.success("Đã xóa người dùng thành công!");
+      // Reload danh sách sau khi xóa
+      loadUsers(pagination.current, pagination.pageSize);
+      loadUserStats();
+    } catch (error) {
+      message.error("Không thể xóa người dùng");
+      console.error("Error deleting user:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-      
-      setTimeout(() => {
-        if (editingUser) {
-          setUsers(users.map(user => 
-            user.id === editingUser.id 
-              ? { ...user, ...values }
-              : user
-          ));
-          message.success('Cập nhật người dùng thành công!');
-        } else {
-          const newUser = {
-            id: Date.now().toString(),
-            ...values,
-            lastLogin: 'Chưa đăng nhập',
-            createdAt: new Date().toLocaleDateString(),
-            avatar: null
-          };
-          setUsers([...users, newUser]);
-          message.success('Thêm người dùng mới thành công!');
-        }
-        
-        setModalVisible(false);
-        setLoading(false);
-        form.resetFields();
-      }, 1000);
+      // Chuyển đổi format dữ liệu để gửi API
+      const userData = {
+        ...values,
+        dateOfBirth: values.dateOfBirth
+          ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
+          : null,
+        apartmentId: values.apartmentId ? parseInt(values.apartmentId) : null,
+      };
+
+      // Không gửi password nếu đang edit và password trống
+      if (editingUser && !values.password) {
+        delete userData.password;
+      }
+
+      if (editingUser) {
+        // Cập nhật user
+        await userService.updateUser(editingUser.userId, userData);
+        message.success("Cập nhật người dùng thành công!");
+      } else {
+        // Tạo user mới
+        await userService.createUser(userData);
+        message.success("Thêm người dùng mới thành công!");
+      }
+
+      setModalVisible(false);
+      setLoading(false);
+      form.resetFields();
+
+      // Reload danh sách sau khi thêm/sửa
+      loadUsers(pagination.current, pagination.pageSize);
+      loadUserStats();
     } catch (error) {
-      console.error('Validation failed:', error);
+      setLoading(false);
+      message.error(
+        editingUser
+          ? "Không thể cập nhật người dùng"
+          : "Không thể tạo người dùng mới"
+      );
+      console.error("Error saving user:", error);
     }
   };
-
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchText.toLowerCase()) ||
-    user.phone.includes(searchText)
+  const filteredUsers = users.filter(
+    (user) =>
+      (user.name &&
+        user.name.toLowerCase().includes(searchText.toLowerCase())) ||
+      user.email.toLowerCase().includes(searchText.toLowerCase()) ||
+      (user.phoneNumber && user.phoneNumber.includes(searchText))
   );
-
-  // Thống kê
-  const totalUsers = users.length;
-  const activeUsers = users.filter(u => u.status === 'active').length;
-  const adminUsers = users.filter(u => u.role === 'admin').length;
-  const residentUsers = users.filter(u => u.role === 'resident').length;
+  // Thống kê - sử dụng từ userStats
+  const activeUsers = users.filter((u) => u.status === "active").length;
+  const adminUsers = userStats.admin || 0;
+  const residentUsers = userStats.resident || 0;
 
   return (
-    <div style={{ 
-      padding: '24px', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      minHeight: '100vh'
-    }}>
+    <div
+      style={{
+        padding: "24px",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        minHeight: "100vh",
+      }}
+    >
       {/* Header */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '16px',
-        padding: '24px',
-        marginBottom: '24px',
-        backdropFilter: 'blur(10px)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1890ff, #36cfc9)',
-            borderRadius: '12px',
-            padding: '12px',
-            marginRight: '16px'
-          }}>
-            <TeamOutlined style={{ fontSize: '24px', color: 'white' }} />
+      <div
+        style={{
+          background: "rgba(255, 255, 255, 0.95)",
+          borderRadius: "16px",
+          padding: "24px",
+          marginBottom: "24px",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "16px",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(135deg, #1890ff, #36cfc9)",
+              borderRadius: "12px",
+              padding: "12px",
+              marginRight: "16px",
+            }}
+          >
+            <TeamOutlined style={{ fontSize: "24px", color: "white" }} />
           </div>
           <div>
-            <Title level={2} style={{ margin: 0, background: 'linear-gradient(135deg, #1890ff, #722ed1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Title
+              level={2}
+              style={{
+                margin: 0,
+                background: "linear-gradient(135deg, #1890ff, #722ed1)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
               Quản Lý Tài Khoản
             </Title>
-            <Text type="secondary">Quản lý tài khoản người dùng trong hệ thống</Text>
+            <Text type="secondary">
+              Quản lý tài khoản người dùng trong hệ thống
+            </Text>
           </div>
         </div>
       </div>
 
       {/* Thống kê */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
+          <Card
+            style={{
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              border: "none",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            {" "}
             <Statistic
-              title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Tổng Tài Khoản</span>}
-              value={totalUsers}
-              prefix={<UserOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>tài khoản</span>}
+              title={
+                <span style={{ color: "rgba(255,255,255,0.8)" }}>
+                  Tổng Tài Khoản
+                </span>
+              }
+              value={userStats.total || totalUsers}
+              prefix={<UserOutlined style={{ color: "white" }} />}
+              valueStyle={{
+                color: "white",
+                fontSize: "28px",
+                fontWeight: "bold",
+              }}
+              suffix={
+                <span
+                  style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px" }}
+                >
+                  tài khoản
+                </span>
+              }
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
+          <Card
+            style={{
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+              border: "none",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+            }}
+          >
             <Statistic
-              title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Đang Hoạt Động</span>}
+              title={
+                <span style={{ color: "rgba(255,255,255,0.8)" }}>
+                  Đang Hoạt Động
+                </span>
+              }
               value={activeUsers}
-              prefix={<CheckCircleOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>tài khoản</span>}
+              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
+              valueStyle={{
+                color: "white",
+                fontSize: "28px",
+                fontWeight: "bold",
+              }}
+              suffix={
+                <span
+                  style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px" }}
+                >
+                  tài khoản
+                </span>
+              }
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
+          <Card
+            style={{
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+              border: "none",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+            }}
+          >
             <Statistic
-              title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Quản Trị Viên</span>}
+              title={
+                <span style={{ color: "rgba(255,255,255,0.8)" }}>
+                  Quản Trị Viên
+                </span>
+              }
               value={adminUsers}
-              prefix={<CrownOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>người</span>}
+              prefix={<CrownOutlined style={{ color: "white" }} />}
+              valueStyle={{
+                color: "white",
+                fontSize: "28px",
+                fontWeight: "bold",
+              }}
+              suffix={
+                <span
+                  style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px" }}
+                >
+                  người
+                </span>
+              }
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
+          <Card
+            style={{
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+              border: "none",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+            }}
+          >
             <Statistic
-              title={<span style={{ color: 'rgba(100,100,100,0.8)' }}>Cư Dân</span>}
+              title={
+                <span style={{ color: "rgba(100,100,100,0.8)" }}>Cư Dân</span>
+              }
               value={residentUsers}
-              prefix={<TeamOutlined style={{ color: '#666' }} />}
-              valueStyle={{ color: '#666', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(100,100,100,0.8)', fontSize: '16px' }}>người</span>}
+              prefix={<TeamOutlined style={{ color: "#666" }} />}
+              valueStyle={{
+                color: "#666",
+                fontSize: "28px",
+                fontWeight: "bold",
+              }}
+              suffix={
+                <span
+                  style={{ color: "rgba(100,100,100,0.8)", fontSize: "16px" }}
+                >
+                  người
+                </span>
+              }
             />
           </Card>
         </Col>
@@ -464,21 +649,25 @@ const UserManagement = () => {
       {/* Bảng quản lý */}
       <Card
         style={{
-          borderRadius: '16px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          border: 'none'
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+          border: "none",
         }}
         title={
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #1890ff, #36cfc9)',
-              borderRadius: '8px',
-              padding: '8px',
-              marginRight: '12px'
-            }}>
-              <UserOutlined style={{ color: 'white', fontSize: '16px' }} />
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div
+              style={{
+                background: "linear-gradient(135deg, #1890ff, #36cfc9)",
+                borderRadius: "8px",
+                padding: "8px",
+                marginRight: "12px",
+              }}
+            >
+              <UserOutlined style={{ color: "white", fontSize: "16px" }} />
             </div>
-            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#1890ff' }}>
+            <span
+              style={{ fontSize: "18px", fontWeight: "bold", color: "#1890ff" }}
+            >
               Danh Sách Tài Khoản
             </span>
           </div>
@@ -492,7 +681,7 @@ const UserManagement = () => {
               size="large"
               onSearch={setSearchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ minWidth: '300px' }}
+              style={{ minWidth: "300px" }}
             />
             <Button
               type="primary"
@@ -500,10 +689,10 @@ const UserManagement = () => {
               onClick={handleAddUser}
               size="large"
               style={{
-                background: 'linear-gradient(135deg, #1890ff, #36cfc9)',
-                border: 'none',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)'
+                background: "linear-gradient(135deg, #1890ff, #36cfc9)",
+                border: "none",
+                borderRadius: "8px",
+                boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
               }}
             >
               Thêm Tài Khoản
@@ -511,25 +700,34 @@ const UserManagement = () => {
           </Space>
         }
       >
+        {" "}
         <Table
           columns={columns}
           dataSource={filteredUsers}
-          rowKey="id"
+          rowKey="userId"
+          loading={loading}
           pagination={{
-            total: filteredUsers.length,
-            pageSize: 10,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} của ${total} tài khoản`,
+            onChange: (page, pageSize) => {
+              loadUsers(page, pageSize);
+            },
+            onShowSizeChange: (current, pageSize) => {
+              loadUsers(1, pageSize);
+            },
           }}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 1200 }}
         />
       </Card>
 
       {/* Modal thêm/sửa */}
       <Modal
-        title={editingUser ? '✏️ Sửa Tài Khoản' : '➕ Thêm Tài Khoản Mới'}
+        title={editingUser ? "✏️ Sửa Tài Khoản" : "➕ Thêm Tài Khoản Mới"}
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={() => {
@@ -538,15 +736,16 @@ const UserManagement = () => {
         }}
         width={600}
         confirmLoading={loading}
-        okText={editingUser ? 'Cập nhật' : 'Thêm mới'}
+        okText={editingUser ? "Cập nhật" : "Thêm mới"}
         cancelText="Hủy"
       >
+        {" "}
         <Form
           form={form}
           layout="vertical"
           initialValues={{
-            status: 'active',
-            role: 'resident',
+            status: "active",
+            role: "resident",
           }}
         >
           <Row gutter={16}>
@@ -554,7 +753,7 @@ const UserManagement = () => {
               <Form.Item
                 name="name"
                 label="Họ và tên"
-                rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+                rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
               >
                 <Input placeholder="Nhập họ và tên" />
               </Form.Item>
@@ -564,8 +763,8 @@ const UserManagement = () => {
                 name="email"
                 label="Email"
                 rules={[
-                  { required: true, message: 'Vui lòng nhập email!' },
-                  { type: 'email', message: 'Email không hợp lệ!' }
+                  { required: true, message: "Vui lòng nhập email!" },
+                  { type: "email", message: "Email không hợp lệ!" },
                 ]}
               >
                 <Input placeholder="example@email.com" />
@@ -576,20 +775,68 @@ const UserManagement = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="phone"
+                name="phoneNumber"
                 label="Số điện thoại"
-                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                rules={[
+                  { required: true, message: "Vui lòng nhập số điện thoại!" },
+                ]}
               >
                 <Input placeholder="0912345678" />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                name="department"
-                label="Phòng ban"
-              >
-                <Input placeholder="Nhập phòng ban" />
+              <Form.Item name="citizenId" label="Số CCCD">
+                <Input placeholder="Nhập số CCCD" />
               </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="dateOfBirth" label="Ngày sinh">
+                <DatePicker
+                  placeholder="Chọn ngày sinh"
+                  style={{ width: "100%" }}
+                  format="DD/MM/YYYY"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="apartmentId" label="ID Căn hộ">
+                <Input placeholder="Nhập ID căn hộ" type="number" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item name="address" label="Địa chỉ">
+                <Input placeholder="Nhập địa chỉ đầy đủ" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="licensePlate" label="Biển số xe">
+                <Input placeholder="Nhập biển số xe" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              {!editingUser && (
+                <Form.Item
+                  name="password"
+                  label="Mật khẩu"
+                  rules={[
+                    {
+                      required: !editingUser,
+                      message: "Vui lòng nhập mật khẩu!",
+                    },
+                  ]}
+                >
+                  <Input.Password placeholder="Nhập mật khẩu" />
+                </Form.Item>
+              )}
             </Col>
           </Row>
 
@@ -598,7 +845,7 @@ const UserManagement = () => {
               <Form.Item
                 name="role"
                 label="Vai trò"
-                rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
+                rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
               >
                 <Select placeholder="Chọn vai trò">
                   <Option value="admin">Quản trị viên</Option>
@@ -613,7 +860,9 @@ const UserManagement = () => {
               <Form.Item
                 name="status"
                 label="Trạng thái"
-                rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+                rules={[
+                  { required: true, message: "Vui lòng chọn trạng thái!" },
+                ]}
               >
                 <Select>
                   <Option value="active">Hoạt động</Option>
