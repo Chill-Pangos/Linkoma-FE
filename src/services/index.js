@@ -8,4 +8,5 @@ export { default as serviceRegistrationService } from "./serviceRegistrationServ
 export { default as feedbackService } from "./feedbackService";
 export { default as maintenanceService } from "./maintenanceService";
 export { default as announcementService } from "./announcementService";
+export { default as roleService } from "./roleService";
 export * from "./apiService";

@@ -88,7 +88,7 @@ const Login = () => {
           }}
         >
           Kết nối số với mái ấm của bạn
-        </Text>{" "}
+        </Text>
         <Form
           name="login"
           initialValues={{ remember: true }}
@@ -175,19 +175,6 @@ const Login = () => {
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
           </Form.Item>
-
-          <div
-            style={{
-              padding: "16px 0",
-              borderTop: "1px solid #f0f0f0",
-              marginTop: "20px",
-            }}
-          >
-            <Text type="secondary" style={{ fontSize: "12px" }}>
-              Tài khoản demo: <Text strong>tuandt1409@gmail.com</Text> /{" "}
-              <Text strong>tuan1234</Text>
-            </Text>
-          </div>
         </Form>
         <div style={{ marginTop: 20 }}>
           <Text
