@@ -19,6 +19,7 @@ import {
   Tooltip,
   Badge,
   DatePicker,
+  Divider,
 } from "antd";
 import {
   UserOutlined,
@@ -35,7 +36,7 @@ import {
   MailOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
-import { userService } from "../../../services";
+import { userService, roleService } from "../../../services";
 import dayjs from "dayjs";
 
 const { Search } = Input;
@@ -45,29 +46,32 @@ const { Title, Text } = Typography;
 const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [viewingUser, setViewingUser] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [userStats, setUserStats] = useState({});
+  const [roles, setRoles] = useState([]);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   });
-
   // Load data khi component mount
   useEffect(() => {
     loadUsers();
     loadUserStats();
+    loadRoles();
   }, []);
-
   // Load danh sách users
   const loadUsers = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
       const response = await userService.getAllUsers(page, limit);
+      console.log("Users API response:", response); // Debug log
       setUsers(response.data || []);
       setPagination({
         current: page,
@@ -82,7 +86,6 @@ const UserManagement = () => {
       setLoading(false);
     }
   };
-
   // Load thống kê users
   const loadUserStats = async () => {
     try {
@@ -93,38 +96,21 @@ const UserManagement = () => {
     }
   };
 
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "admin":
-        return "#ff4d4f";
-      case "manager":
-        return "#722ed1";
-      case "staff":
-        return "#1890ff";
-      case "resident":
-        return "#52c41a";
-      case "security":
-        return "#faad14";
-      default:
-        return "#666";
+  // Load danh sách roles
+  const loadRoles = async () => {
+    try {
+      const response = await roleService.getAllRoles();
+      setRoles(response.roles || []);
+    } catch (error) {
+      console.error("Error loading roles:", error);
     }
+  };
+  const getRoleColor = (role) => {
+    return roleService.getRoleColor(role);
   };
 
   const getRoleText = (role) => {
-    switch (role) {
-      case "admin":
-        return "Quản trị viên";
-      case "manager":
-        return "Quản lý";
-      case "staff":
-        return "Nhân viên";
-      case "resident":
-        return "Cư dân";
-      case "security":
-        return "Bảo vệ";
-      default:
-        return "Không xác định";
-    }
+    return roleService.getRoleDisplayName(role);
   };
 
   const getRoleIcon = (role) => {
@@ -176,7 +162,9 @@ const UserManagement = () => {
         <div>
           <div style={{ marginBottom: "4px" }}>
             <MailOutlined style={{ marginRight: "6px", color: "#1890ff" }} />
-            <Text style={{ fontSize: "13px" }}>{record.email}</Text>
+            <Text style={{ fontSize: "13px" }}>
+              {record.email || "Chưa cập nhật"}
+            </Text>
           </div>
           <div>
             <PhoneOutlined style={{ marginRight: "6px", color: "#52c41a" }} />
@@ -199,7 +187,7 @@ const UserManagement = () => {
           </div>
           <div style={{ marginBottom: "4px" }}>
             <Text style={{ fontSize: "12px" }}>
-              <strong>Ngày sinh:</strong>{" "}
+              <strong>Ngày sinh:</strong>
               {record.dateOfBirth
                 ? dayjs(record.dateOfBirth).format("DD/MM/YYYY")
                 : "Chưa cập nhật"}
@@ -217,36 +205,32 @@ const UserManagement = () => {
       title: "Vai trò",
       dataIndex: "role",
       key: "role",
-      filters: [
-        { text: "Quản trị viên", value: "admin" },
-        { text: "Quản lý", value: "manager" },
-        { text: "Nhân viên", value: "staff" },
-        { text: "Cư dân", value: "resident" },
-        { text: "Bảo vệ", value: "security" },
-      ],
+      filters: roles.map((role) => ({
+        text: roleService.getRoleDisplayName(role),
+        value: role,
+      })),
       onFilter: (value, record) => record.role === value,
       render: (role) => (
         <Tag color={getRoleColor(role)} icon={getRoleIcon(role)}>
           {getRoleText(role)}
         </Tag>
       ),
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      filters: [
-        { text: "Hoạt động", value: "active" },
-        { text: "Không hoạt động", value: "inactive" },
-      ],
-      onFilter: (value, record) => record.status === value,
-      render: (status) => (
-        <Badge
-          status={status === "active" ? "success" : "default"}
-          text={status === "active" ? "Hoạt động" : "Không hoạt động"}
-        />
-      ),
-    },
+    }, // {
+    //   title: "Trạng thái",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   filters: [
+    //     { text: "Hoạt động", value: "active" },
+    //     { text: "Không hoạt động", value: "inactive" },
+    //   ],
+    //   onFilter: (value, record) => record.status === value,
+    //   render: (status) => (
+    //     <Badge
+    //       status={status === "active" ? "success" : "default"}
+    //       text={status === "active" ? "Hoạt động" : "Không hoạt động"}
+    //     />
+    //   ),
+    // },
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
@@ -255,7 +239,9 @@ const UserManagement = () => {
         <div>
           <ClockCircleOutlined style={{ marginRight: "6px", color: "#666" }} />
           <Text style={{ fontSize: "12px" }}>
-            {dayjs(createdAt).format("DD/MM/YYYY HH:mm")}
+            {createdAt
+              ? dayjs(createdAt).format("DD/MM/YYYY HH:mm")
+              : "Không có thông tin"}
           </Text>
         </div>
       ),
@@ -326,65 +312,9 @@ const UserManagement = () => {
     setModalVisible(true);
   };
   const handleViewUser = (user) => {
-    Modal.info({
-      title: "Thông tin chi tiết người dùng",
-      width: 600,
-      content: (
-        <div style={{ padding: "16px 0" }}>
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
-            <Avatar
-              size={80}
-              icon={<UserOutlined />}
-              style={{ backgroundColor: getRoleColor(user.role) }}
-            />
-            <Title level={4} style={{ margin: "8px 0" }}>
-              {user.name || "Chưa cập nhật"}
-            </Title>
-            <Tag color={getRoleColor(user.role)} icon={getRoleIcon(user.role)}>
-              {getRoleText(user.role)}
-            </Tag>
-          </div>
-          <div>
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p>
-              <strong>Điện thoại:</strong> {user.phoneNumber || "Chưa cập nhật"}
-            </p>
-            <p>
-              <strong>CCCD:</strong> {user.citizenId || "Chưa cập nhật"}
-            </p>
-            <p>
-              <strong>Ngày sinh:</strong>{" "}
-              {user.dateOfBirth
-                ? dayjs(user.dateOfBirth).format("DD/MM/YYYY")
-                : "Chưa cập nhật"}
-            </p>
-            <p>
-              <strong>Địa chỉ:</strong> {user.address || "Chưa cập nhật"}
-            </p>
-            <p>
-              <strong>Biển số xe:</strong> {user.licensePlate || "Chưa có"}
-            </p>
-            <p>
-              <strong>Căn hộ:</strong> {user.apartmentId || "Chưa có"}
-            </p>
-            <p>
-              <strong>Trạng thái:</strong>{" "}
-              {user.status === "active" ? "Hoạt động" : "Không hoạt động"}
-            </p>
-            <p>
-              <strong>Ngày tạo:</strong>{" "}
-              {dayjs(user.createdAt).format("DD/MM/YYYY HH:mm")}
-            </p>
-            <p>
-              <strong>Ngày cập nhật:</strong>{" "}
-              {dayjs(user.updatedAt).format("DD/MM/YYYY HH:mm")}
-            </p>
-          </div>
-        </div>
-      ),
-    });
+    console.log("User data for view:", user); // Debug log
+    setViewingUser(user);
+    setViewModalVisible(true);
   };
 
   const handleDeleteUser = async (userId) => {
@@ -402,7 +332,6 @@ const UserManagement = () => {
       setLoading(false);
     }
   };
-
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
@@ -424,10 +353,36 @@ const UserManagement = () => {
       if (editingUser) {
         // Cập nhật user
         await userService.updateUser(editingUser.userId, userData);
+
+        // Nếu role thay đổi, gọi API assign role
+        if (editingUser.role !== values.role) {
+          try {
+            await roleService.assignRoleToUser(editingUser.userId, values.role);
+            console.log("Role updated successfully");
+          } catch (roleError) {
+            console.error("Error updating role:", roleError);
+            message.warning(
+              "Cập nhật thông tin thành công nhưng không thể thay đổi role"
+            );
+          }
+        }
+
         message.success("Cập nhật người dùng thành công!");
       } else {
         // Tạo user mới
-        await userService.createUser(userData);
+        const newUser = await userService.createUser(userData);
+
+        // Assign role cho user mới nếu có role được chỉ định
+        if (values.role && newUser.userId) {
+          try {
+            await roleService.assignRoleToUser(newUser.userId, values.role);
+            console.log("Role assigned successfully");
+          } catch (roleError) {
+            console.error("Error assigning role:", roleError);
+            message.warning("Tạo user thành công nhưng không thể gán role");
+          }
+        }
+
         message.success("Thêm người dùng mới thành công!");
       }
 
@@ -452,11 +407,13 @@ const UserManagement = () => {
     (user) =>
       (user.name &&
         user.name.toLowerCase().includes(searchText.toLowerCase())) ||
-      user.email.toLowerCase().includes(searchText.toLowerCase()) ||
-      (user.phoneNumber && user.phoneNumber.includes(searchText))
-  );
-  // Thống kê - sử dụng từ userStats
-  const activeUsers = users.filter((u) => u.status === "active").length;
+      (user.email &&
+        user.email.toLowerCase().includes(searchText.toLowerCase())) ||
+      (user.phoneNumber && user.phoneNumber.includes(searchText)) ||
+      (user.userId && user.userId.toString().includes(searchText))
+  ); // Thống kê - sử dụng từ userStats
+  // const activeUsers = users.filter((u) => u.status === "active").length; // Tạm ẩn vì backend chưa trả về status
+  const managerUsers = userStats.manager || 0; // Thêm manager users
   const adminUsers = userStats.admin || 0;
   const residentUsers = userStats.resident || 0;
 
@@ -526,7 +483,6 @@ const UserManagement = () => {
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
             }}
           >
-            {" "}
             <Statistic
               title={
                 <span style={{ color: "rgba(255,255,255,0.8)" }}>
@@ -561,12 +517,10 @@ const UserManagement = () => {
           >
             <Statistic
               title={
-                <span style={{ color: "rgba(255,255,255,0.8)" }}>
-                  Đang Hoạt Động
-                </span>
+                <span style={{ color: "rgba(255,255,255,0.8)" }}>Quản Lý</span>
               }
-              value={activeUsers}
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
+              value={managerUsers}
+              prefix={<SettingOutlined style={{ color: "white" }} />}
               valueStyle={{
                 color: "white",
                 fontSize: "28px",
@@ -576,7 +530,7 @@ const UserManagement = () => {
                 <span
                   style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px" }}
                 >
-                  tài khoản
+                  người
                 </span>
               }
             />
@@ -700,7 +654,6 @@ const UserManagement = () => {
           </Space>
         }
       >
-        {" "}
         <Table
           columns={columns}
           dataSource={filteredUsers}
@@ -739,7 +692,6 @@ const UserManagement = () => {
         okText={editingUser ? "Cập nhật" : "Thêm mới"}
         cancelText="Hủy"
       >
-        {" "}
         <Form
           form={form}
           layout="vertical"
@@ -848,11 +800,16 @@ const UserManagement = () => {
                 rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
               >
                 <Select placeholder="Chọn vai trò">
-                  <Option value="admin">Quản trị viên</Option>
-                  <Option value="manager">Quản lý</Option>
-                  <Option value="staff">Nhân viên</Option>
-                  <Option value="resident">Cư dân</Option>
-                  <Option value="security">Bảo vệ</Option>
+                  {roles.map((role) => (
+                    <Option key={role} value={role}>
+                      <Tag
+                        color={roleService.getRoleColor(role)}
+                        style={{ margin: 0 }}
+                      >
+                        {roleService.getRoleDisplayName(role)}
+                      </Tag>
+                    </Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -872,6 +829,123 @@ const UserManagement = () => {
             </Col>
           </Row>
         </Form>
+      </Modal>
+
+      {/* Modal xem chi tiết người dùng */}
+      <Modal
+        title="👁️ Chi Tiết Người Dùng"
+        open={viewModalVisible}
+        onCancel={() => setViewModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setViewModalVisible(false)}>
+            Đóng
+          </Button>,
+          <Button
+            key="edit"
+            type="primary"
+            onClick={() => {
+              setViewModalVisible(false);
+              handleEditUser(viewingUser);
+            }}
+          >
+            Chỉnh sửa
+          </Button>,
+        ]}
+        width={600}
+      >
+        {viewingUser && (
+          <div style={{ padding: "16px 0" }}>
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <Avatar
+                size={80}
+                icon={<UserOutlined />}
+                style={{
+                  backgroundColor: getRoleColor(viewingUser.role || "resident"),
+                }}
+              />
+              <Title level={4} style={{ margin: "8px 0" }}>
+                {viewingUser.name || "Chưa cập nhật"}
+              </Title>
+              <Tag
+                color={getRoleColor(viewingUser.role || "resident")}
+                icon={getRoleIcon(viewingUser.role || "resident")}
+              >
+                {getRoleText(viewingUser.role || "resident")}
+              </Tag>
+            </div>
+
+            <Row gutter={[16, 12]}>
+              <Col span={12}>
+                <Text strong>🆔 ID:</Text>
+                <br />
+                <Text>{viewingUser.userId || "N/A"}</Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>📧 Email:</Text>
+                <br />
+                <Text copyable>{viewingUser.email || "Chưa cập nhật"}</Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>📱 Điện thoại:</Text>
+                <br />
+                <Text copyable>
+                  {viewingUser.phoneNumber || "Chưa cập nhật"}
+                </Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>🆔 CCCD:</Text>
+                <br />
+                <Text>{viewingUser.citizenId || "Chưa cập nhật"}</Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>📅 Ngày sinh:</Text>
+                <br />
+                <Text>
+                  {viewingUser.dateOfBirth
+                    ? dayjs(viewingUser.dateOfBirth).format("DD/MM/YYYY")
+                    : "Chưa cập nhật"}
+                </Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>🏠 Căn hộ:</Text>
+                <br />
+                {viewingUser.apartmentId ? (
+                  <Tag color="blue">Căn hộ {viewingUser.apartmentId}</Tag>
+                ) : (
+                  <Text type="secondary">Chưa có</Text>
+                )}
+              </Col>
+              <Col span={12}>
+                <Text strong>🏡 Địa chỉ:</Text>
+                <br />
+                <Text>{viewingUser.address || "Chưa cập nhật"}</Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>🚗 Biển số xe:</Text>
+                <br />
+                <Text>{viewingUser.licensePlate || "Chưa có"}</Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>⏰ Ngày tạo:</Text>
+                <br />
+                <Text>
+                  {viewingUser.createdAt
+                    ? dayjs(viewingUser.createdAt).format("DD/MM/YYYY HH:mm")
+                    : "Không có thông tin"}
+                </Text>
+              </Col>
+              <Col span={12}>
+                <Text strong>🔄 Ngày cập nhật:</Text>
+                <br />
+                <Text>
+                  {viewingUser.updatedAt
+                    ? dayjs(viewingUser.updatedAt).format("DD/MM/YYYY HH:mm")
+                    : "Không có thông tin"}
+                </Text>
+              </Col>
+            </Row>
+          </div>
+        )}
       </Modal>
     </div>
   );

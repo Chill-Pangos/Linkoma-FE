@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Table,
   Card,
+  Table,
   Button,
   Input,
   Space,
@@ -9,655 +9,691 @@ import {
   Modal,
   Form,
   Select,
-  DatePicker,
   Row,
   Col,
   Statistic,
   Typography,
+  Badge,
+  Tooltip,
+  Popconfirm,
+  message,
   Avatar,
-  Timeline,
-  Progress,
+  Divider,
+  Empty,
 } from 'antd';
 import {
-  PlusOutlined,
+  ToolOutlined,
+  UserOutlined,
   SearchOutlined,
+  EyeOutlined,
   EditOutlined,
   DeleteOutlined,
-  ToolOutlined,
-  ClockCircleOutlined,
   CheckCircleOutlined,
+  ClockCircleOutlined,
   ExclamationCircleOutlined,
-  UserOutlined,
+  CommentOutlined,
+  CalendarOutlined,
+  PlusOutlined,
+  ReloadOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
+import { maintenanceService } from "../../../services";
 import dayjs from 'dayjs';
 
-const { Search } = Input;
+const { Title, Text, Paragraph } = Typography;
+const { Search, TextArea } = Input;
 const { Option } = Select;
-const { Title, Text } = Typography;
-const { TextArea } = Input;
 
 const MaintenanceManagement = () => {
   const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [replyModalVisible, setReplyModalVisible] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [viewingRequest, setViewingRequest] = useState(null);
+  const [replyingRequest, setReplyingRequest] = useState(null);
   const [editingRequest, setEditingRequest] = useState(null);
   const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [form] = Form.useForm();
+  const [replyForm] = Form.useForm();
+  const [createForm] = Form.useForm();
 
-  // Dữ liệu mẫu yêu cầu bảo trì
-  const [maintenanceRequests, setMaintenanceRequests] = useState([
-    {
-      id: '1',
-      title: 'Sửa chữa điều hòa',
-      apartment: 'A101',
-      resident: 'Nguyễn Văn An',
-      phone: '0912345678',
-      category: 'electrical',
-      priority: 'high',
-      status: 'pending',
-      description: 'Điều hòa không lạnh, có tiếng kêu lạ',
-      createdDate: '2024-12-15',
-      scheduledDate: '2024-12-16',
-      completedDate: null,
-      technician: null,
-      cost: null,
-      images: []
-    },
-    {
-      id: '2',
-      title: 'Thông tắc bồn cầu',
-      apartment: 'B205',
-      resident: 'Trần Thị Bình',
-      phone: '0923456789',
-      category: 'plumbing',
-      priority: 'urgent',
-      status: 'in_progress',
-      description: 'Bồn cầu bị tắc, nước tràn ra ngoài',
-      createdDate: '2024-12-14',
-      scheduledDate: '2024-12-15',
-      completedDate: null,
-      technician: 'Thợ Nguyễn',
-      cost: 150000,
-      images: []
-    },
-    {
-      id: '3',
-      title: 'Sửa khóa cửa',
-      apartment: 'C304',
-      resident: 'Lê Văn Cường',
-      phone: '0934567890',
-      category: 'security',
-      priority: 'medium',
-      status: 'completed',
-      description: 'Khóa cửa bị kẹt, không mở được',
-      createdDate: '2024-12-10',
-      scheduledDate: '2024-12-12',
-      completedDate: '2024-12-12',
-      technician: 'Thợ Trần',
-      cost: 200000,
-      images: []
+  // State cho dữ liệu API
+  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    resolved: 0,
+    rejected: 0,
+    cancelled: 0,
+  });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalResults: 0,
+  });
+
+  // Load dữ liệu ban đầu
+  useEffect(() => {
+    const initData = async () => {
+      await Promise.all([
+        loadMaintenanceRequests(),
+        loadStats(),
+      ]);
+    };
+    initData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load lại dữ liệu khi filter thay đổi
+  useEffect(() => {
+    loadMaintenanceRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pagination.page]);
+
+  /**
+   * Load danh sách maintenance requests từ API
+   */
+  const loadMaintenanceRequests = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+      };
+
+      // Thêm filter nếu có
+      if (statusFilter) params.status = statusFilter;
+
+      console.log("Loading maintenance requests with params:", params);
+      const response = await maintenanceService.getAllMaintenanceRequests(params);
+
+      setMaintenanceRequests(response.maintenanceRequests || []);
+      setPagination(prev => ({
+        ...prev,
+        totalPages: response.totalPages || 1,
+        totalResults: response.totalResults || 0,
+      }));
+    } catch (error) {
+      console.error("Error loading maintenance requests:", error);
+      message.error("Lỗi khi tải danh sách yêu cầu bảo trì: " + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'urgent': return 'red';
-      case 'high': return 'orange';
-      case 'medium': return 'blue';
-      case 'low': return 'green';
-      default: return 'default';
+  /**
+   * Load thống kê maintenance requests từ API
+   */
+  const loadStats = async () => {
+    try {
+      const response = await maintenanceService.getMaintenanceStats();
+      setStats(response);
+    } catch (error) {
+      console.error("Error loading maintenance stats:", error);
+      message.error("Lỗi khi tải thống kê bảo trì: " + (error.response?.data?.message || error.message));
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'orange';
-      case 'in_progress': return 'blue';
-      case 'completed': return 'green';
-      case 'cancelled': return 'red';
+      case 'Pending': return 'orange';
+      case 'In Progress': return 'blue';
+      case 'Resolved': return 'green';
+      case 'Rejected': return 'red';
+      case 'Cancelled': return 'gray';
       default: return 'default';
-    }
-  };
-
-  const getPriorityText = (priority) => {
-    switch (priority) {
-      case 'urgent': return 'Khẩn cấp';
-      case 'high': return 'Cao';
-      case 'medium': return 'Trung bình';
-      case 'low': return 'Thấp';
-      default: return priority;
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'pending': return 'Chờ xử lý';
-      case 'in_progress': return 'Đang xử lý';
-      case 'completed': return 'Hoàn thành';
-      case 'cancelled': return 'Đã hủy';
+      case 'Pending': return 'Chờ xử lý';
+      case 'In Progress': return 'Đang xử lý';
+      case 'Resolved': return 'Đã hoàn thành';
+      case 'Rejected': return 'Từ chối';
+      case 'Cancelled': return 'Đã hủy';
       default: return status;
     }
   };
 
-  const getCategoryText = (category) => {
-    switch (category) {
-      case 'electrical': return 'Điện';
-      case 'plumbing': return 'Nước';
-      case 'security': return 'An ninh';
-      case 'cleaning': return 'Vệ sinh';
-      case 'furniture': return 'Nội thất';
-      case 'other': return 'Khác';
-      default: return category;
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Pending': return <ClockCircleOutlined />;
+      case 'In Progress': return <ExclamationCircleOutlined />;
+      case 'Resolved': return <CheckCircleOutlined />;
+      case 'Rejected': return <DeleteOutlined />;
+      case 'Cancelled': return <DeleteOutlined />;
+      default: return <ToolOutlined />;
+    }
+  };
+
+  // Xem chi tiết maintenance request
+  const handleViewRequest = async (request) => {
+    try {
+      const detailResponse = await maintenanceService.getMaintenanceRequestById(request.feedbackId);
+      setViewingRequest(detailResponse);
+      setViewModalVisible(true);
+    } catch (error) {
+      console.error("Error loading maintenance request detail:", error);
+      message.error("Lỗi khi tải chi tiết yêu cầu bảo trì");
+    }
+  };
+
+  // Trả lời maintenance request
+  const handleReplyRequest = (request) => {
+    setReplyingRequest(request);
+    setReplyModalVisible(true);
+  };
+
+  // Submit phản hồi
+  const handleReplySubmit = async () => {
+    try {
+      const values = await replyForm.validateFields();
+      setLoading(true);
+
+      await maintenanceService.updateMaintenanceResponse(replyingRequest.feedbackId, {
+        status: values.status,
+        response: values.response,
+      });
+
+      message.success('Phản hồi thành công!');
+      setReplyModalVisible(false);
+      replyForm.resetFields();
+      setReplyingRequest(null);
+      
+      // Reload dữ liệu
+      await Promise.all([loadMaintenanceRequests(), loadStats()]);
+    } catch (error) {
+      console.error("Error replying maintenance request:", error);
+      message.error("Lỗi khi phản hồi: " + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sửa maintenance request
+  const handleEditRequest = (request) => {
+    setEditingRequest(request);
+    form.setFieldsValue({
+      description: request.description,
+    });
+    setEditModalVisible(true);
+  };
+
+  // Submit sửa maintenance request
+  const handleEditSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      setLoading(true);
+
+      await maintenanceService.updateMaintenanceRequest(editingRequest.feedbackId, {
+        category: "Maintenance", // Luôn là Maintenance
+        description: values.description,
+      });
+
+      message.success('Cập nhật yêu cầu bảo trì thành công!');
+      setEditModalVisible(false);
+      form.resetFields();
+      setEditingRequest(null);
+      
+      // Reload dữ liệu
+      await loadMaintenanceRequests();
+    } catch (error) {
+      console.error("Error updating maintenance request:", error);
+      message.error("Lỗi khi cập nhật: " + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xóa maintenance request
+  const handleDeleteRequest = async (feedbackId) => {
+    try {
+      setLoading(true);
+      await maintenanceService.deleteMaintenanceRequest(feedbackId);
+      message.success('Xóa yêu cầu bảo trì thành công!');
+      
+      // Reload dữ liệu
+      await Promise.all([loadMaintenanceRequests(), loadStats()]);
+    } catch (error) {
+      console.error("Error deleting maintenance request:", error);
+      message.error("Lỗi khi xóa: " + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Tạo maintenance request mới
+  const handleCreateRequest = () => {
+    setCreateModalVisible(true);
+  };
+
+  // Submit tạo maintenance request
+  const handleCreateSubmit = async () => {
+    try {
+      const values = await createForm.validateFields();
+      setLoading(true);
+
+      await maintenanceService.createMaintenanceRequest(values);
+
+      message.success('Tạo yêu cầu bảo trì thành công!');
+      setCreateModalVisible(false);
+      createForm.resetFields();
+      
+      // Reload dữ liệu
+      await Promise.all([loadMaintenanceRequests(), loadStats()]);
+    } catch (error) {
+      console.error("Error creating maintenance request:", error);
+      message.error("Lỗi khi tạo yêu cầu bảo trì: " + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
   const columns = [
     {
-      title: 'Yêu cầu',
-      key: 'requestInfo',
-      render: (_, record) => (
+      title: 'ID',
+      dataIndex: 'feedbackId',
+      key: 'feedbackId',
+      width: 80,
+      render: (text) => <Text strong>#{text}</Text>,
+    },
+    {
+      title: 'Mô tả yêu cầu bảo trì',
+      dataIndex: 'description',
+      key: 'description',
+      render: (text) => (
         <div>
-          <Text strong style={{ fontSize: '14px' }}>{record.title}</Text>
+          <Text strong style={{ fontSize: '14px' }}>{text}</Text>
           <br />
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            #{record.id} - {dayjs(record.createdDate).format('DD/MM/YYYY')}
-          </Text>
+          <Tag color="orange" icon={<ToolOutlined />}>
+            Bảo trì
+          </Tag>
         </div>
       ),
     },
     {
-      title: 'Căn hộ',
-      key: 'apartmentInfo',
-      render: (_, record) => (
-        <div>
-          <Text strong>{record.apartment}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: '12px' }}>{record.resident}</Text>
+      title: 'User ID',
+      dataIndex: 'userId',
+      key: 'userId',
+      width: 100,
+      render: (userId) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar size={32} icon={<UserOutlined />} style={{ marginRight: '8px' }} />
+          <div>
+            <Text strong>ID: {userId}</Text>
+          </div>
         </div>
-      ),
-    },
-    {
-      title: 'Loại',
-      dataIndex: 'category',
-      key: 'category',
-      render: (category) => (
-        <Tag color="blue">{getCategoryText(category)}</Tag>
-      ),
-    },
-    {
-      title: 'Ưu tiên',
-      dataIndex: 'priority',
-      key: 'priority',
-      render: (priority) => (
-        <Tag color={getPriorityColor(priority)}>
-          {getPriorityText(priority)}
-        </Tag>
       ),
     },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
+      filters: [
+        { text: 'Chờ xử lý', value: 'Pending' },
+        { text: 'Đang xử lý', value: 'In Progress' },
+        { text: 'Đã hoàn thành', value: 'Resolved' },
+        { text: 'Từ chối', value: 'Rejected' },
+        { text: 'Đã hủy', value: 'Cancelled' },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (status) => (
-        <Tag 
-          color={getStatusColor(status)}
-          icon={
-            status === 'completed' ? <CheckCircleOutlined /> :
-            status === 'in_progress' ? <ClockCircleOutlined /> :
-            status === 'pending' ? <ExclamationCircleOutlined /> : null
-          }
-        >
+        <Tag color={getStatusColor(status)} icon={getStatusIcon(status)}>
           {getStatusText(status)}
         </Tag>
       ),
     },
     {
-      title: 'Thợ phụ trách',
-      dataIndex: 'technician',
-      key: 'technician',
-      render: (technician) => technician || <Text type="secondary">Chưa phân công</Text>,
+      title: 'Phản hồi',
+      dataIndex: 'response',
+      key: 'response',
+      render: (response) => (
+        response ? (
+          <Text type="success">Đã phản hồi</Text>
+        ) : (
+          <Text type="secondary">Chưa phản hồi</Text>
+        )
+      ),
     },
     {
-      title: 'Chi phí',
-      dataIndex: 'cost',
-      key: 'cost',
-      render: (cost) => cost ? `${cost.toLocaleString()} VNĐ` : <Text type="secondary">--</Text>,
+      title: 'Ngày tạo',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 120,
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      render: (date) => (
+        <div>
+          <CalendarOutlined style={{ marginRight: '4px', color: '#666' }} />
+          <Text style={{ fontSize: '12px' }}>
+            {dayjs(date).format('DD/MM/YYYY')}
+          </Text>
+          <br />
+          <Text type="secondary" style={{ fontSize: '11px' }}>
+            {dayjs(date).format('HH:mm')}
+          </Text>
+        </div>
+      ),
     },
     {
       title: 'Thao tác',
       key: 'action',
-      width: 120,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
-          <Button
-            type="primary"
-            ghost
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
+          <Tooltip title="Xem chi tiết">
+            <Button type="link" icon={<EyeOutlined />} onClick={() => handleViewRequest(record)} />
+          </Tooltip>
+          <Tooltip title="Trả lời">
+            <Button type="link" icon={<CommentOutlined />} onClick={() => handleReplyRequest(record)} />
+          </Tooltip>
+          <Tooltip title="Sửa">
+            <Button type="link" icon={<EditOutlined />} onClick={() => handleEditRequest(record)} />
+          </Tooltip>
+          <Popconfirm
+            title="Bạn có chắc muốn xóa yêu cầu bảo trì này?"
+            onConfirm={() => handleDeleteRequest(record.feedbackId)}
+            okText="Có"
+            cancelText="Không"
           >
-            Sửa
-          </Button>
-          <Button
-            type="primary"
-            danger
-            size="small"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          >
-            Xóa
-          </Button>
+            <Tooltip title="Xóa">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },
   ];
 
-  const handleAdd = () => {
-    setEditingRequest(null);
-    form.resetFields();
-    setModalVisible(true);
-  };
-
-  const handleEdit = (request) => {
-    setEditingRequest(request);
-    form.setFieldsValue({
-      ...request,
-      createdDate: dayjs(request.createdDate),
-      scheduledDate: request.scheduledDate ? dayjs(request.scheduledDate) : null,
-      completedDate: request.completedDate ? dayjs(request.completedDate) : null,
-    });
-    setModalVisible(true);
-  };
-
-  const handleDelete = (id) => {
-    setMaintenanceRequests(maintenanceRequests.filter(req => req.id !== id));
-  };
-
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
-      
-      setTimeout(() => {
-        if (editingRequest) {
-          setMaintenanceRequests(maintenanceRequests.map(req => 
-            req.id === editingRequest.id 
-              ? { 
-                  ...req, 
-                  ...values,
-                  createdDate: values.createdDate.format('YYYY-MM-DD'),
-                  scheduledDate: values.scheduledDate ? values.scheduledDate.format('YYYY-MM-DD') : null,
-                  completedDate: values.completedDate ? values.completedDate.format('YYYY-MM-DD') : null,
-                }
-              : req
-          ));
-        } else {
-          const newRequest = {
-            id: Date.now().toString(),
-            ...values,
-            createdDate: values.createdDate.format('YYYY-MM-DD'),
-            scheduledDate: values.scheduledDate ? values.scheduledDate.format('YYYY-MM-DD') : null,
-            completedDate: values.completedDate ? values.completedDate.format('YYYY-MM-DD') : null,
-          };
-          setMaintenanceRequests([...maintenanceRequests, newRequest]);
-        }
-        
-        setModalVisible(false);
-        setLoading(false);
-        form.resetFields();
-      }, 1000);
-    } catch (error) {
-      console.error('Validation failed:', error);
-    }
-  };
-
-  const filteredRequests = maintenanceRequests.filter(req =>
-    req.title.toLowerCase().includes(searchText.toLowerCase()) ||
-    req.apartment.toLowerCase().includes(searchText.toLowerCase()) ||
-    req.resident.toLowerCase().includes(searchText.toLowerCase())
+  // Lọc dữ liệu theo search text
+  const filteredRequests = maintenanceRequests.filter(request =>
+    request.description.toLowerCase().includes(searchText.toLowerCase()) ||
+    request.feedbackId.toString().includes(searchText.toLowerCase())
   );
 
-  const totalRequests = maintenanceRequests.length;
-  const pendingRequests = maintenanceRequests.filter(req => req.status === 'pending').length;
-  const inProgressRequests = maintenanceRequests.filter(req => req.status === 'in_progress').length;
-  const completedRequests = maintenanceRequests.filter(req => req.status === 'completed').length;
-
   return (
-    <div style={{ 
-      padding: '24px', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      minHeight: '100vh'
-    }}>
-      {/* Header */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '16px',
-        padding: '24px',
-        marginBottom: '24px',
-        backdropFilter: 'blur(10px)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1890ff, #36cfc9)',
-            borderRadius: '12px',
-            padding: '12px',
-            marginRight: '16px'
-          }}>
-            <ToolOutlined style={{ fontSize: '24px', color: 'white' }} />
-          </div>
-          <div>
-            <Title level={2} style={{ margin: 0, background: 'linear-gradient(135deg, #1890ff, #722ed1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Quản Lý Bảo Trì
-            </Title>
-            <Text type="secondary">Quản lý yêu cầu bảo trì và sửa chữa trong chung cư</Text>
-          </div>
-        </div>
-      </div>
-
-      {/* Thống kê */}
+    <div style={{ padding: '24px' }}>
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
-            <Statistic
-              title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Tổng Yêu Cầu</span>}
-              value={totalRequests}
-              prefix={<ToolOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>yêu cầu</span>}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #faad14 0%, #ffc53d 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
-            <Statistic
-              title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Chờ Xử Lý</span>}
-              value={pendingRequests}
-              prefix={<ClockCircleOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>yêu cầu</span>}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #1890ff 0%, #36cfc9 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
-            <Statistic
-              title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Đang Xử Lý</span>}
-              value={inProgressRequests}
-              prefix={<ExclamationCircleOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>yêu cầu</span>}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card style={{
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)',
-            border: 'none',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-          }}>
-            <Statistic
-              title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Hoàn Thành</span>}
-              value={completedRequests}
-              prefix={<CheckCircleOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white', fontSize: '28px', fontWeight: 'bold' }}
-              suffix={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>yêu cầu</span>}
-            />
+        <Col span={24}>
+          <Card>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={6} lg={5}>
+                <Statistic
+                  title="Tổng số"
+                  value={stats.total}
+                  prefix={<ToolOutlined />}
+                  valueStyle={{ color: '#fa8c16' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6} lg={5}>
+                <Statistic
+                  title="Chờ xử lý"
+                  value={stats.pending}
+                  prefix={<ClockCircleOutlined />}
+                  valueStyle={{ color: '#faad14' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6} lg={5}>
+                <Statistic
+                  title="Đang xử lý"
+                  value={stats.inProgress}
+                  prefix={<ExclamationCircleOutlined />}
+                  valueStyle={{ color: '#1890ff' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6} lg={5}>
+                <Statistic
+                  title="Đã hoàn thành"
+                  value={stats.resolved}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: '#52c41a' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6} lg={4}>
+                <Statistic
+                  title="Từ chối"
+                  value={stats.rejected}
+                  prefix={<WarningOutlined />}
+                  valueStyle={{ color: '#ff4d4f' }}
+                />
+              </Col>
+            </Row>
           </Card>
         </Col>
       </Row>
 
-      {/* Bảng yêu cầu bảo trì */}
       <Card
-        style={{
-          borderRadius: '16px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          border: 'none'
-        }}
         title={
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #1890ff, #36cfc9)',
-              borderRadius: '8px',
-              padding: '8px',
-              marginRight: '12px'
-            }}>
-              <ToolOutlined style={{ color: 'white', fontSize: '16px' }} />
-            </div>
-            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#1890ff' }}>
-              Danh Sách Yêu Cầu Bảo Trì
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Title level={4} style={{ margin: 0 }}>
+              <ToolOutlined style={{ marginRight: '8px' }} />
+              Quản lý Bảo trì
+            </Title>
+            <Space>
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateRequest}>
+                Tạo Yêu cầu Bảo trì
+              </Button>
+              <Button icon={<ReloadOutlined />} onClick={() => Promise.all([loadMaintenanceRequests(), loadStats()])}>
+                Làm mới
+              </Button>
+            </Space>
           </div>
         }
-        extra={
-          <Space>
-            <Search
-              placeholder="Tìm kiếm yêu cầu..."
-              allowClear
-              enterButton={<SearchOutlined />}
-              size="large"
-              onSearch={setSearchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ minWidth: '300px' }}
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              size="large"
-              style={{
-                background: 'linear-gradient(135deg, #1890ff, #36cfc9)',
-                border: 'none',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)'
-              }}
-            >
-              Thêm Yêu Cầu
-            </Button>
-          </Space>
-        }
       >
+        <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Search
+              placeholder="Tìm kiếm yêu cầu bảo trì..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
+              placeholder="Lọc theo trạng thái"
+              value={statusFilter}
+              onChange={setStatusFilter}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Option value="Pending">Chờ xử lý</Option>
+              <Option value="In Progress">Đang xử lý</Option>
+              <Option value="Resolved">Đã hoàn thành</Option>
+              <Option value="Rejected">Từ chối</Option>
+              <Option value="Cancelled">Đã hủy</Option>
+            </Select>
+          </Col>
+        </Row>
+
         <Table
           columns={columns}
           dataSource={filteredRequests}
-          rowKey="id"
+          rowKey="feedbackId"
+          loading={loading}
           pagination={{
-            total: filteredRequests.length,
-            pageSize: 10,
+            current: pagination.page,
+            pageSize: pagination.limit,
+            total: pagination.totalResults,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} yêu cầu`,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} yêu cầu bảo trì`,
+            onChange: (page, pageSize) => {
+              setPagination(prev => ({ ...prev, page, limit: pageSize }));
+            },
           }}
-          scroll={{ x: 1200 }}
+          locale={{
+            emptyText: <Empty description="Không có dữ liệu" />
+          }}
         />
       </Card>
 
-      {/* Modal thêm/sửa yêu cầu */}
+      {/* Modal xem chi tiết */}
       <Modal
-        title={editingRequest ? '✏️ Sửa Yêu Cầu Bảo Trì' : '➕ Thêm Yêu Cầu Bảo Trì'}
-        open={modalVisible}
-        onOk={handleModalOk}
+        title="🔧 Chi tiết Yêu cầu Bảo trì"
+        open={viewModalVisible}
+        onCancel={() => setViewModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        {viewingRequest && (
+          <div>
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <Title level={4}>#{viewingRequest.feedbackId}</Title>
+                <Space>
+                  <Tag color={getStatusColor(viewingRequest.status)}>
+                    {getStatusText(viewingRequest.status)}
+                  </Tag>
+                  <Tag color="orange" icon={<ToolOutlined />}>
+                    Bảo trì
+                  </Tag>
+                </Space>
+              </div>
+              
+              <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
+                <Col span={12}>
+                  <Space direction="vertical" size="small">
+                    <Text strong>ID Yêu cầu: #{viewingRequest.feedbackId}</Text>
+                    <Text strong>User ID: {viewingRequest.userId}</Text>
+                    <Text>Loại: <Tag color="orange" icon={<ToolOutlined />}>Bảo trì</Tag></Text>
+                  </Space>
+                </Col>
+                <Col span={12}>
+                  <Space direction="vertical" size="small">
+                    <Text><CalendarOutlined /> Ngày tạo: {dayjs(viewingRequest.createdAt).format('DD/MM/YYYY HH:mm')}</Text>
+                    <Text><CalendarOutlined /> Cập nhật: {dayjs(viewingRequest.updatedAt).format('DD/MM/YYYY HH:mm')}</Text>
+                    {viewingRequest.responseDate && (
+                      <Text><CalendarOutlined /> Ngày phản hồi: {dayjs(viewingRequest.responseDate).format('DD/MM/YYYY HH:mm')}</Text>
+                    )}
+                  </Space>
+                </Col>
+              </Row>
+
+              <Divider />
+              
+              <div style={{ marginBottom: '16px' }}>
+                <Text strong>Mô tả yêu cầu bảo trì:</Text>
+                <Paragraph style={{ marginTop: '8px', padding: '12px', backgroundColor: '#fff7e6', borderRadius: '8px', borderLeft: '4px solid #fa8c16' }}>
+                  {viewingRequest.description}
+                </Paragraph>
+              </div>
+
+              {viewingRequest.response && (
+                <div style={{ marginBottom: '16px' }}>
+                  <Text strong>Phản hồi từ Admin:</Text>
+                  <Paragraph style={{ marginTop: '8px', padding: '12px', backgroundColor: '#f0f8ff', borderRadius: '8px', borderLeft: '4px solid #1890ff' }}>
+                    {viewingRequest.response}
+                  </Paragraph>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal trả lời */}
+      <Modal
+        title="💬 Trả lời Yêu cầu Bảo trì"
+        open={replyModalVisible}
+        onOk={handleReplySubmit}
         onCancel={() => {
-          setModalVisible(false);
+          setReplyModalVisible(false);
+          replyForm.resetFields();
+        }}
+        width={600}
+        confirmLoading={loading}
+      >
+        {replyingRequest && (
+          <Form form={replyForm} layout="vertical">
+            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fff7e6', borderRadius: '8px' }}>
+              <Text strong>Yêu cầu bảo trì #{replyingRequest.feedbackId}</Text>
+              <br />
+              <Text>{replyingRequest.description}</Text>
+            </div>
+            
+            <Form.Item
+              name="status"
+              label="Trạng thái"
+              rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+            >
+              <Select placeholder="Chọn trạng thái">
+                <Option value="Pending">Chờ xử lý</Option>
+                <Option value="In Progress">Đang xử lý</Option>
+                <Option value="Resolved">Đã hoàn thành</Option>
+                <Option value="Rejected">Từ chối</Option>
+                <Option value="Cancelled">Đã hủy</Option>
+              </Select>
+            </Form.Item>
+            
+            <Form.Item
+              name="response"
+              label="Phản hồi"
+              rules={[{ required: true, message: 'Vui lòng nhập phản hồi!' }]}
+            >
+              <TextArea rows={4} placeholder="Nhập phản hồi về tiến độ bảo trì..." />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+
+      {/* Modal sửa yêu cầu bảo trì */}
+      <Modal
+        title="✏️ Sửa Yêu cầu Bảo trì"
+        open={editModalVisible}
+        onOk={handleEditSubmit}
+        onCancel={() => {
+          setEditModalVisible(false);
           form.resetFields();
         }}
-        width={800}
+        width={600}
         confirmLoading={loading}
-        okText={editingRequest ? 'Cập nhật' : 'Thêm mới'}
-        cancelText="Hủy"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{
-            priority: 'medium',
-            status: 'pending',
-            createdDate: dayjs(),
-          }}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="title"
-                label="Tiêu đề yêu cầu"
-                rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
-              >
-                <Input placeholder="VD: Sửa chữa điều hòa" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="apartment"
-                label="Căn hộ"
-                rules={[{ required: true, message: 'Vui lòng nhập số căn hộ!' }]}
-              >
-                <Input placeholder="VD: A101" />
-              </Form.Item>
-            </Col>
-          </Row>
+        {editingRequest && (
+          <Form form={form} layout="vertical">
+            <Form.Item
+              name="description"
+              label="Mô tả yêu cầu bảo trì"
+              rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
+            >
+              <TextArea rows={4} placeholder="Nhập mô tả yêu cầu bảo trì..." />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="resident"
-                label="Cư dân"
-                rules={[{ required: true, message: 'Vui lòng nhập tên cư dân!' }]}
-              >
-                <Input placeholder="VD: Nguyễn Văn An" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="phone"
-                label="Số điện thoại"
-                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
-              >
-                <Input placeholder="VD: 0912345678" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="category"
-                label="Loại bảo trì"
-                rules={[{ required: true, message: 'Vui lòng chọn loại!' }]}
-              >
-                <Select placeholder="Chọn loại">
-                  <Option value="electrical">Điện</Option>
-                  <Option value="plumbing">Nước</Option>
-                  <Option value="security">An ninh</Option>
-                  <Option value="cleaning">Vệ sinh</Option>
-                  <Option value="furniture">Nội thất</Option>
-                  <Option value="other">Khác</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="priority"
-                label="Độ ưu tiên"
-                rules={[{ required: true, message: 'Vui lòng chọn độ ưu tiên!' }]}
-              >
-                <Select>
-                  <Option value="urgent">Khẩn cấp</Option>
-                  <Option value="high">Cao</Option>
-                  <Option value="medium">Trung bình</Option>
-                  <Option value="low">Thấp</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="status"
-                label="Trạng thái"
-                rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
-              >
-                <Select>
-                  <Option value="pending">Chờ xử lý</Option>
-                  <Option value="in_progress">Đang xử lý</Option>
-                  <Option value="completed">Hoàn thành</Option>
-                  <Option value="cancelled">Đã hủy</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
+      {/* Modal tạo yêu cầu bảo trì */}
+      <Modal
+        title="➕ Tạo Yêu cầu Bảo trì Mới"
+        open={createModalVisible}
+        onOk={handleCreateSubmit}
+        onCancel={() => {
+          setCreateModalVisible(false);
+          createForm.resetFields();
+        }}
+        width={600}
+        confirmLoading={loading}
+      >
+        <Form form={createForm} layout="vertical">
+          <Form.Item
+            name="userId"
+            label="User ID"
+            rules={[{ required: true, message: 'Vui lòng nhập User ID!' }]}
+          >
+            <Input type="number" placeholder="Nhập User ID" />
+          </Form.Item>
+          
           <Form.Item
             name="description"
-            label="Mô tả chi tiết"
+            label="Mô tả yêu cầu bảo trì"
             rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
           >
-            <TextArea 
-              rows={4} 
-              placeholder="Mô tả chi tiết về vấn đề cần bảo trì..."
-            />
+            <TextArea rows={4} placeholder="Nhập mô tả yêu cầu bảo trì..." />
           </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="createdDate"
-                label="Ngày tạo"
-                rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
-              >
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="scheduledDate"
-                label="Ngày hẹn"
-              >
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="completedDate"
-                label="Ngày hoàn thành"
-              >
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="technician"
-                label="Thợ phụ trách"
-              >
-                <Input placeholder="VD: Thợ Nguyễn" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="cost"
-                label="Chi phí (VNĐ)"
-              >
-                <Input type="number" placeholder="VD: 150000" />
-              </Form.Item>
-            </Col>
-          </Row>
         </Form>
       </Modal>
     </div>

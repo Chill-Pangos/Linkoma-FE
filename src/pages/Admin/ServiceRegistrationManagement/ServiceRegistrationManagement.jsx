@@ -833,7 +833,8 @@ const ServiceRegistrationManagement = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Căn hộ" span={1}>
                 <Text strong>
-                  {getApartmentNumber(viewingRegistration.apartmentId)}
+                  {/* {getApartmentNumber(viewingRegistration.apartmentId)} */}
+                  {viewingRegistration.apartmentId}
                 </Text>
               </Descriptions.Item>
               <Descriptions.Item label="Dịch vụ" span={1}>
