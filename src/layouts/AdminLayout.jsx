@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Typography,
@@ -32,6 +32,42 @@ const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+
+  // Add custom scrollbar styles
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      .custom-sidebar-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      
+      .custom-sidebar-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+      }
+      
+      .custom-sidebar-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        transition: background 0.3s ease;
+      }
+      
+      .custom-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+      
+      /* For Firefox */
+      .custom-sidebar-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Use real user data from auth, fallback to mock for demo
   const currentUser = user || {
@@ -192,7 +228,7 @@ const AdminLayout = ({ children }) => {
   const roleInfo = getRoleInfo(currentUser.role);
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", overflow: "hidden" }}>
       {/* Sidebar */}
       <Sider
         trigger={null}
@@ -202,10 +238,17 @@ const AdminLayout = ({ children }) => {
         onBreakpoint={(broken) => {
           setCollapsed(broken);
         }}
+        className="custom-sidebar-scrollbar"
         style={{
           background: "linear-gradient(180deg, #1890ff 0%, #722ed1 100%)",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           zIndex: 1000,
+          position: "fixed",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          height: "100vh",
+          overflow: "auto",
         }}
         width={250}
         collapsedWidth={80}
@@ -262,7 +305,12 @@ const AdminLayout = ({ children }) => {
       </Sider>
 
       {/* Main Layout */}
-      <Layout>
+      <Layout
+        style={{
+          marginLeft: collapsed ? 80 : 250,
+          transition: "margin-left 0.2s",
+        }}
+      >
         {/* Header */}
         <Header
           style={{
@@ -273,6 +321,12 @@ const AdminLayout = ({ children }) => {
             alignItems: "center",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
             zIndex: 999,
+            position: "fixed",
+            top: 0,
+            right: 0,
+            left: collapsed ? 80 : 250,
+            transition: "left 0.2s",
+            height: "64px",
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -415,6 +469,7 @@ const AdminLayout = ({ children }) => {
         <Content
           style={{
             margin: 0,
+            marginTop: "64px",
             minHeight: "calc(100vh - 64px)",
             background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
             overflow: "auto",

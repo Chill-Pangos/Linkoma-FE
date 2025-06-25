@@ -58,6 +58,19 @@ export const userService = {
     }
   },
 
+  // Tạo người dùng chỉ với email
+  createUserWithEmail: async (email) => {
+    try {
+      const response = await axiosInstance.post("/users/create-with-email", {
+        email: email,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error creating user with email:", error);
+      throw error;
+    }
+  },
+
   // Cập nhật người dùng
   updateUser: async (userId, userData) => {
     try {

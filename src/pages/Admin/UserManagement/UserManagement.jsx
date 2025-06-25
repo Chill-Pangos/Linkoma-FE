@@ -35,9 +35,11 @@ import {
   ClockCircleOutlined,
   MailOutlined,
   PhoneOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import { userService, roleService } from "../../../services";
 import dayjs from "dayjs";
+import QuickCreateUserModal from "./QuickCreateUserModal";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -46,6 +48,7 @@ const { Title, Text } = Typography;
 const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [quickCreateModalVisible, setQuickCreateModalVisible] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
@@ -651,6 +654,19 @@ const UserManagement = () => {
             >
               Thêm Tài Khoản
             </Button>
+            <Button
+              type="default"
+              icon={<ThunderboltOutlined />}
+              onClick={() => setQuickCreateModalVisible(true)}
+              size="large"
+              style={{
+                borderRadius: "8px",
+                borderColor: "#52c41a",
+                color: "#52c41a",
+              }}
+            >
+              Tạo Nhanh
+            </Button>
           </Space>
         }
       >
@@ -947,6 +963,16 @@ const UserManagement = () => {
           </div>
         )}
       </Modal>
+
+      {/* Quick Create User Modal */}
+      <QuickCreateUserModal
+        visible={quickCreateModalVisible}
+        onCancel={() => setQuickCreateModalVisible(false)}
+        onSuccess={() => {
+          loadUsers(pagination.current, pagination.pageSize);
+          loadUserStats();
+        }}
+      />
     </div>
   );
 };
