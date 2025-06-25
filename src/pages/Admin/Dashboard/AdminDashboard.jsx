@@ -140,6 +140,7 @@ const AdminDashboard = () => {
               border: "none",
               borderRadius: "16px",
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+              height: "100%",
             }}
           >
             <Statistic
@@ -148,8 +149,8 @@ const AdminDashboard = () => {
                   Doanh Thu Tháng
                 </span>
               }
-              value={mainStats.monthlyRevenue.amount / 1000000}
-              suffix="M VNĐ"
+              value={mainStats.monthlyRevenue.amount}
+              suffix="VNĐ"
               prefix={<DollarOutlined style={{ color: "white" }} />}
               valueStyle={{
                 color: "white",
@@ -189,6 +190,7 @@ const AdminDashboard = () => {
               border: "none",
               borderRadius: "16px",
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+               height: "100%",
             }}
           >
             <Statistic
@@ -214,6 +216,7 @@ const AdminDashboard = () => {
               border: "none",
               borderRadius: "16px",
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+               height: "100%",
             }}
           >
             <Statistic
@@ -247,6 +250,7 @@ const AdminDashboard = () => {
               borderRadius: "16px",
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
               border: "none",
+               height: "100%",
             }}
           >
             <Space direction="vertical" style={{ width: "100%" }}>
@@ -284,6 +288,7 @@ const AdminDashboard = () => {
               borderRadius: "16px",
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
               border: "none",
+               height: "100%",
             }}
           >
             <Space direction="vertical" style={{ width: "100%" }}>
