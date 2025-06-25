@@ -63,7 +63,7 @@ const Login = () => {
       >
         {/* Logo */}
         <img
-          src="/src/assets/LINKOMA_WEB_LOGO_HORIZONTAL.png"
+          src="/LINKOMA_WEB_LOGO_HORIZONTAL.png"
           alt="logo"
           style={{ width: 280, marginBottom: 20 }}
         />
