@@ -40,7 +40,7 @@ const CreateInvoiceWithDetailsModal = ({ visible, onCancel, onSuccess }) => {
   const fetchApartments = async () => {
     try {
       const response = await apartmentService.getAllApartments();
-      setApartments(response.results || []);
+      setApartments(response.apartments || []);
     } catch (error) {
       console.error("Error fetching apartments:", error);
     }

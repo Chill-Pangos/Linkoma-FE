@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Button,
@@ -16,8 +16,8 @@ import {
   Rate,
   Avatar,
   Upload,
-  Tooltip
-} from 'antd';
+  Tooltip,
+} from "antd";
 import {
   MessageOutlined,
   PlusOutlined,
@@ -28,9 +28,11 @@ import {
   SmileOutlined,
   MehOutlined,
   FrownOutlined,
-  SendOutlined
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
+  SendOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import { useAuthStore } from "../../store/authStore";
+import { feedbackService } from "../../services";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -44,122 +46,136 @@ const ResidentFeedback = () => {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [form] = Form.useForm();
 
-  // Mock data - thay thế bằng dữ liệu thực từ API
-  const mockFeedbacks = [
-    {
-      id: 'FB001',
-      title: 'Góp ý về dịch vụ vệ sinh',
-      category: 'Dịch vụ',
-      type: 'Góp ý',
-      priority: 'Trung bình',
-      status: 'Đã phản hồi',
-      content: 'Dịch vụ vệ sinh chung cư cần được cải thiện, đặc biệt là khu vực hành lang và thang máy.',
-      rating: 3,
-      apartment: 'A101',
-      resident: {
-        name: 'Nguyễn Văn An',
-        avatar: null
-      },
-      createdDate: '2024-01-15',
-      responseDate: '2024-01-17',
-      response: {
-        content: 'Cảm ơn anh/chị đã góp ý. Chúng tôi đã ghi nhận và sẽ cải thiện chất lượng dịch vụ vệ sinh.',
-        respondedBy: 'Ban Quản Lý',
-        respondedAt: '2024-01-17'
-      },
-      attachments: ['image1.jpg']
-    },
-    {
-      id: 'FB002',
-      title: 'Khiếu nại về tiếng ồn',
-      category: 'Môi trường sống',
-      type: 'Khiếu nại',
-      priority: 'Cao',
-      status: 'Đang xử lý',
-      content: 'Căn hộ bên cạnh thường xuyên gây tiếng ồn vào ban đêm, ảnh hưởng đến việc nghỉ ngơi.',
-      rating: 2,
-      apartment: 'A101',
-      resident: {
-        name: 'Nguyễn Văn An',
-        avatar: null
-      },
-      createdDate: '2024-01-20',
-      responseDate: null,
-      response: null,
-      attachments: []
-    },
-    {
-      id: 'FB003',
-      title: 'Đề xuất cải thiện khu vui chơi trẻ em',
-      category: 'Tiện ích',
-      type: 'Đề xuất',
-      priority: 'Thấp',
-      status: 'Chờ xử lý',
-      content: 'Đề xuất bổ sung thêm thiết bị vui chơi cho trẻ em tại khu vườn trung tâm.',
-      rating: 4,
-      apartment: 'A101',
-      resident: {
-        name: 'Nguyễn Văn An',
-        avatar: null
-      },
-      createdDate: '2024-01-25',
-      responseDate: null,
-      response: null,
-      attachments: ['image2.jpg', 'image3.jpg']
-    }
-  ];
-
+  const { user } = useAuthStore();
   useEffect(() => {
-    fetchFeedbacks();
-  }, []);
-
-  const fetchFeedbacks = async () => {
+    if (user?.userId) {
+      fetchFeedbacks();
+    }
+  }, [user?.userId, fetchFeedbacks]);
+  const fetchFeedbacks = useCallback(async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setFeedbacks(mockFeedbacks);
+      const response = await feedbackService.getFeedbacksByUserId(user.userId, {
+        limit: 20,
+        page: 1,
+        sortBy: "createdAt:desc",
+      });
+
+      // Transform API data to match UI format
+      const transformedFeedbacks = response.feedbacks.map((feedback) => ({
+        id: feedback.feedbackId,
+        title: feedback.description.substring(0, 50) + "...",
+        category: getVietnameseCategoryName(feedback.category),
+        type: getVietnameseTypeName(feedback.category),
+        priority: getVietnamesePriorityName(feedback.status),
+        status: getVietnameseStatusName(feedback.status),
+        content: feedback.description,
+        rating: 3, // API doesn't have rating, default to 3
+        apartment: user.apartmentNumber || "A101",
+        resident: {
+          name: user.fullName || "Cư dân",
+          avatar: null,
+        },
+        createdDate: dayjs(feedback.createdAt).format("YYYY-MM-DD"),
+        responseDate: feedback.responseDate
+          ? dayjs(feedback.responseDate).format("YYYY-MM-DD")
+          : null,
+        response: feedback.response
+          ? {
+              content: feedback.response,
+              respondedBy: "Ban Quản Lý",
+              respondedAt: feedback.responseDate,
+            }
+          : null,
+        attachments: [],
+      }));
+
+      setFeedbacks(transformedFeedbacks);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tải dữ liệu!');
+      console.error("Error fetching feedbacks:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu!");
     } finally {
       setLoading(false);
+    }
+  }, [user]);
+
+  // Helper functions to convert API data to Vietnamese
+  const getVietnameseCategoryName = (category) => {
+    switch (category) {
+      case "Service":
+        return "Dịch vụ";
+      case "Complaint":
+        return "Khiếu nại";
+      default:
+        return "Khác";
+    }
+  };
+
+  const getVietnameseTypeName = (category) => {
+    switch (category) {
+      case "Service":
+        return "Góp ý";
+      case "Complaint":
+        return "Khiếu nại";
+      default:
+        return "Khác";
+    }
+  };
+
+  const getVietnamesePriorityName = (status) => {
+    switch (status) {
+      case "Pending":
+        return "Thấp";
+      case "In Progress":
+        return "Trung bình";
+      case "Resolved":
+        return "Cao";
+      default:
+        return "Thấp";
+    }
+  };
+
+  const getVietnameseStatusName = (status) => {
+    switch (status) {
+      case "Pending":
+        return "Chờ xử lý";
+      case "In Progress":
+        return "Đang xử lý";
+      case "Resolved":
+        return "Đã phản hồi";
+      case "Rejected":
+        return "Đã từ chối";
+      case "Cancelled":
+        return "Đã hủy";
+      default:
+        return "Chờ xử lý";
     }
   };
 
   const handleCreateFeedback = async (values) => {
     try {
-      // API call to create feedback
-      console.log('Creating feedback:', values);
-      
-      const newFeedback = {
-        id: `FB${String(feedbacks.length + 1).padStart(3, '0')}`,
-        title: values.title,
-        category: values.category,
-        type: values.type,
-        priority: values.priority,
-        status: 'Chờ xử lý',
-        content: values.content,
-        rating: values.rating,
-        apartment: 'A101',
-        resident: {
-          name: 'Nguyễn Văn An',
-          avatar: null
-        },
-        createdDate: dayjs().format('YYYY-MM-DD'),
-        responseDate: null,
-        response: null,
-        attachments: values.attachments?.fileList?.map(file => file.name) || []
+      // Map UI values to API format
+      const apiCategory =
+        values.category === "Dịch vụ" ? "Service" : "Complaint";
+
+      const feedbackData = {
+        userId: user.userId,
+        category: apiCategory,
+        description: `${values.title}\n\n${values.content}`,
+        status: "Pending",
       };
 
-      setFeedbacks([newFeedback, ...feedbacks]);
+      await feedbackService.createFeedback(feedbackData);
+
+      message.success("Tạo phản hồi thành công!");
       setModalVisible(false);
       form.resetFields();
-      message.success('Gửi phản hồi thành công!');
+      fetchFeedbacks(); // Reload data
     } catch (error) {
-      message.error('Có lỗi xảy ra khi gửi phản hồi!');
+      console.error("Error creating feedback:", error);
+      message.error("Có lỗi xảy ra khi tạo phản hồi!");
     }
   };
-
   const handleViewDetail = (feedback) => {
     setSelectedFeedback(feedback);
     setDetailModalVisible(true);
@@ -167,116 +183,123 @@ const ResidentFeedback = () => {
 
   const getStatusConfig = (status) => {
     switch (status) {
-      case 'Chờ xử lý':
-        return { color: 'default', text: 'Chờ xử lý' };
-      case 'Đang xử lý':
-        return { color: 'processing', text: 'Đang xử lý' };
-      case 'Đã phản hồi':
-        return { color: 'success', text: 'Đã phản hồi' };
-      case 'Đã đóng':
-        return { color: 'error', text: 'Đã đóng' };
+      case "Chờ xử lý":
+        return { color: "default", text: "Chờ xử lý" };
+      case "Đang xử lý":
+        return { color: "processing", text: "Đang xử lý" };
+      case "Đã phản hồi":
+        return { color: "success", text: "Đã phản hồi" };
+      case "Đã đóng":
+        return { color: "error", text: "Đã đóng" };
       default:
-        return { color: 'default', text: status };
+        return { color: "default", text: status };
     }
   };
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'Khiếu nại': return '#ff4d4f';
-      case 'Góp ý': return '#faad14';
-      case 'Đề xuất': return '#52c41a';
-      case 'Khen ngợi': return '#1890ff';
-      default: return '#d9d9d9';
+      case "Khiếu nại":
+        return "#ff4d4f";
+      case "Góp ý":
+        return "#faad14";
+      case "Đề xuất":
+        return "#52c41a";
+      case "Khen ngợi":
+        return "#1890ff";
+      default:
+        return "#d9d9d9";
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'Cao': return '#ff4d4f';
-      case 'Trung bình': return '#faad14';
-      case 'Thấp': return '#52c41a';
-      default: return '#d9d9d9';
+      case "Cao":
+        return "#ff4d4f";
+      case "Trung bình":
+        return "#faad14";
+      case "Thấp":
+        return "#52c41a";
+      default:
+        return "#d9d9d9";
     }
   };
 
   const getRatingIcon = (rating) => {
-    if (rating >= 4) return <SmileOutlined style={{ color: '#52c41a' }} />;
-    if (rating >= 3) return <MehOutlined style={{ color: '#faad14' }} />;
-    return <FrownOutlined style={{ color: '#ff4d4f' }} />;
+    if (rating >= 4) return <SmileOutlined style={{ color: "#52c41a" }} />;
+    if (rating >= 3) return <MehOutlined style={{ color: "#faad14" }} />;
+    return <FrownOutlined style={{ color: "#ff4d4f" }} />;
   };
 
   const columns = [
     {
-      title: 'Mã phản hồi',
-      dataIndex: 'id',
-      key: 'id',
+      title: "Mã phản hồi",
+      dataIndex: "id",
+      key: "id",
       width: 100,
-      render: (text) => <Text strong>{text}</Text>
+      render: (text) => <Text strong>{text}</Text>,
     },
     {
-      title: 'Tiêu đề',
-      dataIndex: 'title',
-      key: 'title',
+      title: "Tiêu đề",
+      dataIndex: "title",
+      key: "title",
       width: 200,
-      ellipsis: true
+      ellipsis: true,
     },
     {
-      title: 'Danh mục',
-      dataIndex: 'category',
-      key: 'category',
+      title: "Danh mục",
+      dataIndex: "category",
+      key: "category",
       width: 120,
-      render: (text) => <Tag color="blue">{text}</Tag>
+      render: (text) => <Tag color="blue">{text}</Tag>,
     },
     {
-      title: 'Loại',
-      dataIndex: 'type',
-      key: 'type',
+      title: "Loại",
+      dataIndex: "type",
+      key: "type",
       width: 100,
-      render: (type) => (
-        <Tag color={getTypeColor(type)}>{type}</Tag>
-      )
+      render: (type) => <Tag color={getTypeColor(type)}>{type}</Tag>,
     },
     {
-      title: 'Độ ưu tiên',
-      dataIndex: 'priority',
-      key: 'priority',
+      title: "Độ ưu tiên",
+      dataIndex: "priority",
+      key: "priority",
       width: 100,
       render: (priority) => (
         <Tag color={getPriorityColor(priority)}>{priority}</Tag>
-      )
+      ),
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
       width: 120,
       render: (status) => {
         const config = getStatusConfig(status);
         return <Tag color={config.color}>{config.text}</Tag>;
-      }
+      },
     },
     {
-      title: 'Đánh giá',
-      dataIndex: 'rating',
-      key: 'rating',
+      title: "Đánh giá",
+      dataIndex: "rating",
+      key: "rating",
       width: 100,
       render: (rating) => (
         <Space>
           {getRatingIcon(rating)}
           <Rate disabled value={rating} style={{ fontSize: 14 }} />
         </Space>
-      )
+      ),
     },
     {
-      title: 'Ngày tạo',
-      dataIndex: 'createdDate',
-      key: 'createdDate',
+      title: "Ngày tạo",
+      dataIndex: "createdDate",
+      key: "createdDate",
       width: 100,
-      render: (date) => dayjs(date).format('DD/MM/YYYY')
+      render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
     {
-      title: 'Thao tác',
-      key: 'action',
+      title: "Thao tác",
+      key: "action",
       width: 100,
       render: (_, record) => (
         <Tooltip title="Xem chi tiết">
@@ -288,62 +311,78 @@ const ResidentFeedback = () => {
             onClick={() => handleViewDetail(record)}
           />
         </Tooltip>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="resident-feedback">
       <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
+        <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
           <MessageOutlined style={{ marginRight: 8 }} />
           Phản hồi & Góp ý
         </Title>
-        <Text type="secondary">Gửi phản hồi, góp ý để cải thiện chất lượng dịch vụ</Text>
+        <Text type="secondary">
+          Gửi phản hồi, góp ý để cải thiện chất lượng dịch vụ
+        </Text>
       </div>
 
       {/* Thống kê nhanh */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={6}>
           <Card>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 'bold', color: '#1890ff' }}>
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{ fontSize: 24, fontWeight: "bold", color: "#1890ff" }}
+              >
                 {feedbacks.length}
               </div>
-              <div style={{ color: '#666' }}>Tổng phản hồi</div>
+              <div style={{ color: "#666" }}>Tổng phản hồi</div>
             </div>
           </Card>
         </Col>
         <Col xs={6}>
           <Card>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 'bold', color: '#faad14' }}>
-                {feedbacks.filter(f => f.status === 'Chờ xử lý' || f.status === 'Đang xử lý').length}
-              </div>
-              <div style={{ color: '#666' }}>Đang xử lý</div>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={6}>
-          <Card>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 'bold', color: '#52c41a' }}>
-                {feedbacks.filter(f => f.status === 'Đã phản hồi').length}
-              </div>
-              <div style={{ color: '#666' }}>Đã phản hồi</div>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={6}>
-          <Card>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 'bold', color: '#1890ff' }}>
-                {feedbacks.length > 0 
-                  ? (feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length).toFixed(1)
-                  : '0'
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{ fontSize: 24, fontWeight: "bold", color: "#faad14" }}
+              >
+                {
+                  feedbacks.filter(
+                    (f) => f.status === "Chờ xử lý" || f.status === "Đang xử lý"
+                  ).length
                 }
               </div>
-              <div style={{ color: '#666' }}>Đánh giá TB</div>
+              <div style={{ color: "#666" }}>Đang xử lý</div>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={6}>
+          <Card>
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{ fontSize: 24, fontWeight: "bold", color: "#52c41a" }}
+              >
+                {feedbacks.filter((f) => f.status === "Đã phản hồi").length}
+              </div>
+              <div style={{ color: "#666" }}>Đã phản hồi</div>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={6}>
+          <Card>
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{ fontSize: 24, fontWeight: "bold", color: "#1890ff" }}
+              >
+                {feedbacks.length > 0
+                  ? (
+                      feedbacks.reduce((sum, f) => sum + f.rating, 0) /
+                      feedbacks.length
+                    ).toFixed(1)
+                  : "0"}
+              </div>
+              <div style={{ color: "#666" }}>Đánh giá TB</div>
             </div>
           </Card>
         </Col>
@@ -372,8 +411,8 @@ const ResidentFeedback = () => {
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            showTotal: (total, range) => 
-              `${range[0]}-${range[1]} của ${total} phản hồi`
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} của ${total} phản hồi`,
           }}
         />
       </Card>
@@ -394,25 +433,21 @@ const ResidentFeedback = () => {
         footer={null}
         width={700}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleCreateFeedback}
-        >
+        <Form form={form} layout="vertical" onFinish={handleCreateFeedback}>
           <Form.Item
             label="Tiêu đề"
             name="title"
-            rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
+            rules={[{ required: true, message: "Vui lòng nhập tiêu đề!" }]}
           >
             <Input placeholder="Ví dụ: Góp ý về dịch vụ vệ sinh" />
           </Form.Item>
-          
+
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
                 label="Danh mục"
                 name="category"
-                rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}
+                rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
               >
                 <Select placeholder="Chọn danh mục">
                   <Option value="Dịch vụ">Dịch vụ</Option>
@@ -428,7 +463,7 @@ const ResidentFeedback = () => {
               <Form.Item
                 label="Loại phản hồi"
                 name="type"
-                rules={[{ required: true, message: 'Vui lòng chọn loại!' }]}
+                rules={[{ required: true, message: "Vui lòng chọn loại!" }]}
               >
                 <Select placeholder="Chọn loại">
                   <Option value="Khiếu nại">Khiếu nại</Option>
@@ -442,7 +477,9 @@ const ResidentFeedback = () => {
               <Form.Item
                 label="Độ ưu tiên"
                 name="priority"
-                rules={[{ required: true, message: 'Vui lòng chọn độ ưu tiên!' }]}
+                rules={[
+                  { required: true, message: "Vui lòng chọn độ ưu tiên!" },
+                ]}
               >
                 <Select placeholder="Chọn độ ưu tiên">
                   <Option value="Cao">Cao</Option>
@@ -456,7 +493,7 @@ const ResidentFeedback = () => {
           <Form.Item
             label="Nội dung phản hồi"
             name="content"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
+            rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
           >
             <TextArea
               rows={5}
@@ -467,15 +504,12 @@ const ResidentFeedback = () => {
           <Form.Item
             label="Đánh giá tổng thể"
             name="rating"
-            rules={[{ required: true, message: 'Vui lòng chọn đánh giá!' }]}
+            rules={[{ required: true, message: "Vui lòng chọn đánh giá!" }]}
           >
             <Rate />
           </Form.Item>
 
-          <Form.Item
-            label="Hình ảnh đính kèm"
-            name="attachments"
-          >
+          <Form.Item label="Hình ảnh đính kèm" name="attachments">
             <Upload
               listType="picture-card"
               maxCount={5}
@@ -494,10 +528,12 @@ const ResidentFeedback = () => {
               <Button type="primary" htmlType="submit" icon={<SendOutlined />}>
                 Gửi phản hồi
               </Button>
-              <Button onClick={() => {
-                setModalVisible(false);
-                form.resetFields();
-              }}>
+              <Button
+                onClick={() => {
+                  setModalVisible(false);
+                  form.resetFields();
+                }}
+              >
                 Hủy
               </Button>
             </Space>
@@ -513,7 +549,7 @@ const ResidentFeedback = () => {
         footer={[
           <Button key="close" onClick={() => setDetailModalVisible(false)}>
             Đóng
-          </Button>
+          </Button>,
         ]}
         width={800}
       >
@@ -556,7 +592,11 @@ const ResidentFeedback = () => {
                     <Text strong>Đánh giá: </Text>
                     <Space>
                       {getRatingIcon(selectedFeedback.rating)}
-                      <Rate disabled value={selectedFeedback.rating} style={{ fontSize: 14 }} />
+                      <Rate
+                        disabled
+                        value={selectedFeedback.rating}
+                        style={{ fontSize: 14 }}
+                      />
                     </Space>
                   </div>
                 </Col>
@@ -564,68 +604,103 @@ const ResidentFeedback = () => {
             </Card>
 
             {/* Nội dung phản hồi */}
-            <Card title="Nội dung phản hồi" size="small" style={{ marginBottom: 16 }}>
-              <div style={{ 
-                background: '#f6f6f6', 
-                padding: 16, 
-                borderRadius: 8,
-                marginBottom: 16
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+            <Card
+              title="Nội dung phản hồi"
+              size="small"
+              style={{ marginBottom: 16 }}
+            >
+              <div
+                style={{
+                  background: "#f6f6f6",
+                  padding: 16,
+                  borderRadius: 8,
+                  marginBottom: 16,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 8,
+                  }}
+                >
                   <Avatar icon={<UserOutlined />} size="small" />
                   <Text strong style={{ marginLeft: 8 }}>
                     {selectedFeedback.resident.name}
                   </Text>
-                  <Text type="secondary" style={{ marginLeft: 'auto' }}>
-                    {dayjs(selectedFeedback.createdDate).format('DD/MM/YYYY HH:mm')}
+                  <Text type="secondary" style={{ marginLeft: "auto" }}>
+                    {dayjs(selectedFeedback.createdDate).format(
+                      "DD/MM/YYYY HH:mm"
+                    )}
                   </Text>
                 </div>
                 <Text>{selectedFeedback.content}</Text>
               </div>
 
               {/* Hình ảnh đính kèm */}
-              {selectedFeedback.attachments && selectedFeedback.attachments.length > 0 && (
-                <div style={{ marginTop: 16 }}>
-                  <Text strong>Hình ảnh đính kèm:</Text>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                    {selectedFeedback.attachments.map((image, index) => (
-                      <div key={index} style={{ 
-                        width: 80, 
-                        height: 80, 
-                        background: '#f0f0f0', 
-                        borderRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          {image}
-                        </Text>
-                      </div>
-                    ))}
+              {selectedFeedback.attachments &&
+                selectedFeedback.attachments.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <Text strong>Hình ảnh đính kèm:</Text>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                        marginTop: 8,
+                      }}
+                    >
+                      {selectedFeedback.attachments.map((image, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            width: 80,
+                            height: 80,
+                            background: "#f0f0f0",
+                            borderRadius: 8,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {image}
+                          </Text>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </Card>
 
             {/* Phản hồi từ BQL */}
             {selectedFeedback.response && (
               <Card title="Phản hồi từ Ban Quản Lý" size="small">
-                <div style={{ 
-                  background: '#e6f7ff', 
-                  padding: 16, 
-                  borderRadius: 8,
-                  border: '1px solid #91d5ff'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                    <Avatar style={{ backgroundColor: '#1890ff' }} size="small">
+                <div
+                  style={{
+                    background: "#e6f7ff",
+                    padding: 16,
+                    borderRadius: 8,
+                    border: "1px solid #91d5ff",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Avatar style={{ backgroundColor: "#1890ff" }} size="small">
                       BQL
                     </Avatar>
                     <Text strong style={{ marginLeft: 8 }}>
                       {selectedFeedback.response.respondedBy}
                     </Text>
-                    <Text type="secondary" style={{ marginLeft: 'auto' }}>
-                      {dayjs(selectedFeedback.response.respondedAt).format('DD/MM/YYYY HH:mm')}
+                    <Text type="secondary" style={{ marginLeft: "auto" }}>
+                      {dayjs(selectedFeedback.response.respondedAt).format(
+                        "DD/MM/YYYY HH:mm"
+                      )}
                     </Text>
                   </div>
                   <Text>{selectedFeedback.response.content}</Text>
@@ -633,13 +708,18 @@ const ResidentFeedback = () => {
               </Card>
             )}
 
-            {!selectedFeedback.response && selectedFeedback.status !== 'Đã đóng' && (
-              <Card size="small" style={{ background: '#fffbe6', border: '1px solid #ffe58f' }}>
-                <Text type="secondary">
-                  Phản hồi của bạn đang được xử lý. Chúng tôi sẽ phản hồi sớm nhất có thể.
-                </Text>
-              </Card>
-            )}
+            {!selectedFeedback.response &&
+              selectedFeedback.status !== "Đã đóng" && (
+                <Card
+                  size="small"
+                  style={{ background: "#fffbe6", border: "1px solid #ffe58f" }}
+                >
+                  <Text type="secondary">
+                    Phản hồi của bạn đang được xử lý. Chúng tôi sẽ phản hồi sớm
+                    nhất có thể.
+                  </Text>
+                </Card>
+              )}
           </div>
         )}
       </Modal>

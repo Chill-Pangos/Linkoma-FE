@@ -335,7 +335,7 @@ const AdminDashboard = () => {
               })}
             </Space>
           </Card>
-        </Col>{" "}
+        </Col>
       </Row>
     </div>
   );
