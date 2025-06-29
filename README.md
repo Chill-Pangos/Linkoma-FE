@@ -9,51 +9,51 @@ Phần Web Admin cung cấp giao diện quản lý toàn diện cho việc đi�
 ## ✨ Tính Năng Chính (Web Admin)
 
 ### 🔐 Hệ Thống Phân Quyền (Web)
-- **Admin**: Toàn quyền quản lý hệ thống và cấu hình
-- **Manager**: Quản lý các hoạt động hàng ngày của tòa nhà
-- **Staff**: Nhân viên xử lý công việc cụ thể (bảo trì, dịch vụ)
-- **Security**: Bảo vệ và quản lý an ninh
-- ~~**Resident**: Sử dụng Mobile App riêng~~
+- **Admin**: Toàn quyền quản lý hệ thống và cấu hình ✅ **Đã hoàn thành**
+- **Manager**: Quản lý các hoạt động hàng ngày của tòa nhà ✅ **Đã hoàn thành**
+- ~~**Staff**: Nhân viên xử lý công việc cụ thể~~ 🚧 **Phát triển sau**
+- ~~**Security**: Bảo vệ và quản lý an ninh~~ 🚧 **Phát triển sau**
+- ~~**Resident**: Sử dụng Mobile App riêng~~ 📱 **Mobile App riêng**
 
 ### 👥 Quản Lý Người Dùng (Admin Panel)
-- ✅ CRUD tài khoản toàn bộ người dùng (Admin, Manager, Staff, Security, Resident)
+- ✅ CRUD tài khoản người dùng (hiện tại: Admin, Manager)
 - ⚡ Tạo nhanh tài khoản cư dân chỉ với email
 - 📊 Thống kê người dùng theo vai trò và trạng thái
 - 🔍 Tìm kiếm và lọc nâng cao
 - 👁️ Xem chi tiết thông tin cá nhân
-- 🔑 Quản lý phân quyền và role
+- 🔑 Quản lý phân quyền cơ bản (Admin/Manager)
 
-### 🏠 Quản Lý Căn Hộ (Admin)
-- 🏢 Quản lý thông tin căn hộ và tầng lầu
-- 👨‍👩‍👧‍👦 Gán/chuyển đổi cư dân vào căn hộ
-- 📋 Theo dõi trạng thái căn hộ (trống, đã thuê, bảo trì)
-- 🔧 Quản lý thiết bị và tài sản căn hộ
+### 🏠 Quản Lý Căn Hộ (Admin) 🚧
+- 🏢 Quản lý thông tin căn hộ và tầng lầu **[Đang phát triển]**
+- 👨‍👩‍👧‍👦 Gán/chuyển đổi cư dân vào căn hộ **[Đang phát triển]**
+- 📋 Theo dõi trạng thái căn hộ (trống, đã thuê, bảo trì) **[Đang phát triển]**
+- 🔧 Quản lý thiết bị và tài sản căn hộ **[Kế hoạch tương lai]**
 
-### 💰 Quản Lý Hóa Đơn (Admin)
-- 📄 Tạo và quản lý hóa đơn cho tất cả căn hộ
-- 🔍 Tìm kiếm hóa đơn theo nhiều tiêu chí
-- 💳 Theo dõi trạng thái thanh toán (pending, paid, overdue)
-- 📊 Báo cáo thu chi chi tiết theo tháng/quý/năm
-- 💸 Quản lý phí phạt và ưu đãi
+### 💰 Quản Lý Hóa Đơn (Admin) ✅
+- 📄 Tạo và quản lý hóa đơn cho tất cả căn hộ **[Đã hoàn thành]**
+- 🔍 Tìm kiếm hóa đơn theo nhiều tiêu chí **[Đã hoàn thành]**
+- 💳 Theo dõi trạng thái thanh toán (pending, paid, overdue) **[Đã hoàn thành]**
+- 📊 Báo cáo thu chi chi tiết theo tháng/quý/năm **[Đã hoàn thành]**
+- 💸 Quản lý phí phạt và ưu đãi **[Đang phát triển]**
 
-### 🔧 Quản Lý Bảo Trì (Admin)
-- 🛠️ Tiếp nhận yêu cầu bảo trì từ cư dân (qua Mobile)
-- 📋 Theo dõi tiến độ xử lý và lịch sử bảo trì
-- 👷 Phân công nhân viên và quản lý lịch làm việc
-- 📈 Thống kê chi phí và hiệu suất bảo trì
+### 🔧 Quản Lý Bảo Trì (Admin/Manager) 🚧
+- 🛠️ Tiếp nhận yêu cầu bảo trì **[Đang phát triển]**
+- 📋 Theo dõi tiến độ xử lý và lịch sử bảo trì **[Đang phát triển]**
+- 👷 Phân công nhân viên **[Kế hoạch tương lai]**
+- 📈 Thống kê chi phí và hiệu suất bảo trì **[Kế hoạch tương lai]**
 
-### 📢 Thông Báo & Sự Kiện (Admin)
-- 📣 Gửi thông báo tới cư dân (hiển thị trên Mobile)
-- 🎉 Quản lý sự kiện chung cư và lịch sinh hoạt
-- 📱 Push notification đến Mobile App
-- 📋 Theo dõi tỷ lệ đọc và phản hồi
+### 📢 Thông Báo & Sự Kiện (Admin/Manager) 🚧
+- 📣 Gửi thông báo tới cư dân **[Đang phát triển]**
+- 🎉 Quản lý sự kiện chung cư **[Đang phát triển]**
+- 📱 Push notification đến Mobile App **[Kế hoạch tương lai]**
+- 📋 Theo dõi tỷ lệ đọc và phản hồi **[Kế hoạch tương lai]**
 
-### 📊 Dashboard & Báo Cáo (Admin)
-- 📈 Dashboard tổng quan cho từng vai trò quản lý
-- 📊 Biểu đồ thống kê trực quan (doanh thu, cư dân, bảo trì)
-- 📋 Báo cáo chi tiết theo thời gian và chỉ số KPI
-- 💹 Phân tích doanh thu, chi phí và lợi nhuận
-- 🎯 Theo dõi hiệu suất hoạt động tòa nhà
+### 📊 Dashboard & Báo Cáo (Admin/Manager) ✅
+- 📈 Dashboard tổng quan cho Admin và Manager **[Đã hoàn thành]**
+- 📊 Biểu đồ thống kê cơ bản (doanh thu, người dùng) **[Đã hoàn thành]**
+- 📋 Báo cáo cơ bản theo thời gian **[Đã hoàn thành]**
+- 💹 Phân tích doanh thu cơ bản **[Đã hoàn thành]**
+- 🎯 KPI cơ bản **[Đang phát triển]**
 
 ## 🛠️ Công Nghệ Sử Dụng
 
@@ -145,19 +145,19 @@ src/
 │   └── SidebarMenu.jsx
 ├── pages/             # Page components
 │   ├── Admin/         # Admin management pages
-│   │   ├── Dashboard/           # Admin dashboard & analytics
-│   │   ├── UserManagement/      # Manage all users (Admin, Staff, Residents)
-│   │   ├── BillManagement/      # Invoice & billing management
-│   │   ├── ApartmentManagement/ # Apartment & floor management
-│   │   ├── MaintenanceManagement/ # Maintenance requests & scheduling
-│   │   ├── ServiceManagement/   # Building services management
-│   │   ├── EventNotificationManagement/ # Events & notifications
-│   │   ├── FeedbackManagement/  # Resident feedback from mobile
-│   │   └── Reports/             # Comprehensive reports & analytics
-│   ├── Auth/          # Authentication pages (admin login)
-│   ├── Manager/       # Manager-specific pages
-│   ├── Public/        # Public pages (landing, about)
-│   └── ~~Resident/~~  # Resident pages (moved to Mobile App)
+│   │   ├── Dashboard/           # ✅ Admin dashboard & analytics
+│   │   ├── UserManagement/      # ✅ Manage users (Admin, Manager, basic Resident)
+│   │   ├── BillManagement/      # ✅ Invoice & billing management
+│   │   ├── Reports/             # ✅ Basic reports & analytics
+│   │   ├── ApartmentManagement/ # 🚧 Apartment management [In development]
+│   │   ├── MaintenanceManagement/ # 🚧 Maintenance [In development]
+│   │   ├── ServiceManagement/   # 🚧 Services [In development]
+│   │   ├── EventNotificationManagement/ # 🚧 Events [In development]
+│   │   └── FeedbackManagement/  # 🚧 Feedback [In development]
+│   ├── Auth/          # ✅ Authentication pages (admin login)
+│   ├── Manager/       # ✅ Manager-specific pages (basic)
+│   ├── Public/        # 🚧 Public pages [In development]
+│   └── ~~Resident/~~  # ❌ Moved to Mobile App
 ├── router/            # Routing configuration
 ├── services/          # API services
 │   ├── adminService.js
