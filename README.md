@@ -1,6 +1,7 @@
 # 🏢 Linkoma - Hệ Thống Quản Lý Chung Cư (Web Admin)
 
 Linkoma là một hệ thống quản lý chung cư hiện đại được chia thành 2 phần:
+
 - **🖥️ Web Admin (dự án này)**: Dành cho quản trị viên, quản lý, nhân viên
 - **📱 Mobile App**: Dành cho cư dân (phát triển riêng)
 
@@ -9,13 +10,13 @@ Phần Web Admin cung cấp giao diện quản lý toàn diện cho việc đi�
 ## ✨ Tính Năng Chính (Web Admin)
 
 ### 🔐 Hệ Thống Phân Quyền (Web)
+
 - **Admin**: Toàn quyền quản lý hệ thống và cấu hình ✅ **Đã hoàn thành**
 - **Manager**: Quản lý các hoạt động hàng ngày của tòa nhà ✅ **Đã hoàn thành**
-- ~~**Staff**: Nhân viên xử lý công việc cụ thể~~ 🚧 **Phát triển sau**
-- ~~**Security**: Bảo vệ và quản lý an ninh~~ 🚧 **Phát triển sau**
-- ~~**Resident**: Sử dụng Mobile App riêng~~ 📱 **Mobile App riêng**
+- **Resident**: Sử dụng Mobile App riêng~~ 📱 **Mobile App riêng**
 
 ### 👥 Quản Lý Người Dùng (Admin Panel)
+
 - ✅ CRUD tài khoản người dùng (hiện tại: Admin, Manager)
 - ⚡ Tạo nhanh tài khoản cư dân chỉ với email
 - 📊 Thống kê người dùng theo vai trò và trạng thái
@@ -24,12 +25,14 @@ Phần Web Admin cung cấp giao diện quản lý toàn diện cho việc đi�
 - 🔑 Quản lý phân quyền cơ bản (Admin/Manager)
 
 ### 🏠 Quản Lý Căn Hộ (Admin) 🚧
+
 - 🏢 Quản lý thông tin căn hộ và tầng lầu **[Đang phát triển]**
 - 👨‍👩‍👧‍👦 Gán/chuyển đổi cư dân vào căn hộ **[Đang phát triển]**
 - 📋 Theo dõi trạng thái căn hộ (trống, đã thuê, bảo trì) **[Đang phát triển]**
 - 🔧 Quản lý thiết bị và tài sản căn hộ **[Kế hoạch tương lai]**
 
 ### 💰 Quản Lý Hóa Đơn (Admin) ✅
+
 - 📄 Tạo và quản lý hóa đơn cho tất cả căn hộ **[Đã hoàn thành]**
 - 🔍 Tìm kiếm hóa đơn theo nhiều tiêu chí **[Đã hoàn thành]**
 - 💳 Theo dõi trạng thái thanh toán (pending, paid, overdue) **[Đã hoàn thành]**
@@ -37,27 +40,51 @@ Phần Web Admin cung cấp giao diện quản lý toàn diện cho việc đi�
 - 💸 Quản lý phí phạt và ưu đãi **[Đang phát triển]**
 
 ### 🔧 Quản Lý Bảo Trì (Admin/Manager) 🚧
+
 - 🛠️ Tiếp nhận yêu cầu bảo trì **[Đang phát triển]**
 - 📋 Theo dõi tiến độ xử lý và lịch sử bảo trì **[Đang phát triển]**
 - 👷 Phân công nhân viên **[Kế hoạch tương lai]**
 - 📈 Thống kê chi phí và hiệu suất bảo trì **[Kế hoạch tương lai]**
 
 ### 📢 Thông Báo & Sự Kiện (Admin/Manager) 🚧
-- 📣 Gửi thông báo tới cư dân **[Đang phát triển]**
-- 🎉 Quản lý sự kiện chung cư **[Đang phát triển]**
+
+- 📣 Gửi thông báo tới cư dân **[Đã hoàn thành]**
+- 🎉 Quản lý sự kiện chung cư **[Đã hoàn thành]**
+- 📋 Theo dõi tỷ lệ đọc và phản hồi **[Đã hoàn thành]**
 - 📱 Push notification đến Mobile App **[Kế hoạch tương lai]**
-- 📋 Theo dõi tỷ lệ đọc và phản hồi **[Kế hoạch tương lai]**
 
 ### 📊 Dashboard & Báo Cáo (Admin/Manager) ✅
+
 - 📈 Dashboard tổng quan cho Admin và Manager **[Đã hoàn thành]**
 - 📊 Biểu đồ thống kê cơ bản (doanh thu, người dùng) **[Đã hoàn thành]**
 - 📋 Báo cáo cơ bản theo thời gian **[Đã hoàn thành]**
 - 💹 Phân tích doanh thu cơ bản **[Đã hoàn thành]**
 - 🎯 KPI cơ bản **[Đang phát triển]**
 
+## 🚧 Trạng Thái Phát Triển Hiện Tại
+
+### ✅ **Đã Hoàn Thành (v1.0)**
+
+- 🔐 Authentication system (Admin/Manager login)
+- 👥 User Management (CRUD, roles, quick create)
+- 💰 Bill Management (invoices, payment tracking)
+- 📊 Dashboard (basic charts, statistics)
+- 📋 Reports (financial reports, user stats)
+- 🏠 Apartment Management (basic structure)
+- 🔧 Maintenance Management (general management)
+- 📢 Notifications & Events (general management)
+
+### 📋 **Kế Hoạch Tương Lai**
+
+- 👷 Staff & Security roles
+- 📱 Mobile App integration
+- 🔄 Advanced automation
+- 📊 Enhanced analytics
+
 ## 🛠️ Công Nghệ Sử Dụng
 
 ### Frontend (Web Admin)
+
 - **React 19** - Library UI hiện đại cho admin panel
 - **Vite** - Build tool nhanh chóng và hiệu quả
 - **Ant Design 5** - Component library chuyên nghiệp cho admin
@@ -68,6 +95,7 @@ Phần Web Admin cung cấp giao diện quản lý toàn diện cho việc đi�
 - **Zustand** - State management nhẹ nhàng
 
 ### Styling & UI (Desktop-First)
+
 - **Ant Design Icons** - Bộ icon professional cho admin
 - **CSS3 với Gradient** - Giao diện hiện đại và đẹp mắt
 - **Desktop Responsive** - Tối ưu cho màn hình lớn (laptop/desktop)
@@ -76,10 +104,12 @@ Phần Web Admin cung cấp giao diện quản lý toàn diện cho việc đi�
 ## 🚀 Cài Đặt và Chạy Dự Án
 
 ### Yêu Cầu Hệ Thống
+
 - Node.js >= 18.0.0
 - Yarn >= 1.22.0 (khuyến nghị) hoặc npm
 
 ### Cài Đặt Yarn (nếu chưa có)
+
 ```bash
 # Cài đặt Yarn globally
 npm install -g yarn
@@ -89,6 +119,7 @@ yarn --version
 ```
 
 ### Cài Đặt Dự Án
+
 ```bash
 # Clone dự án
 git clone [repository-url]
@@ -102,6 +133,7 @@ npm install
 ```
 
 ### Chạy Dự Án với Vite
+
 ```bash
 # Development server với hot reload (Vite)
 yarn dev
@@ -121,13 +153,16 @@ yarn lint
 ```
 
 ### 🔥 Tính Năng Vite
+
 - **⚡ Hot Module Replacement (HMR)**: Cập nhật realtime khi dev
 - **🚀 Fast Cold Start**: Khởi động nhanh hơn Webpack
 - **📦 Optimized Build**: Build production tối ưu với Rollup
 - **🔌 Rich Plugin Ecosystem**: Hỗ trợ nhiều plugin mở rộng
 
 ### Cấu Hình Môi Trường
+
 Tạo file `.env` trong thư mục gốc:
+
 ```env
 VITE_API_BASE_URL=http://localhost:8080/api
 VITE_APP_NAME=Linkoma
@@ -172,27 +207,31 @@ src/
 ## 🎨 Tính Năng UI/UX (Web Admin)
 
 ### 🖥️ Desktop-First Design
+
 - � Tối ưu cho màn hình lớn (laptop/desktop 1200px+)
 - 📊 Layout phức tạp với nhiều panel và table
 - 🎛️ Dashboard với nhiều widget và biểu đồ
 - � Data table với pagination và filtering mạnh mẽ
 
 ### 🌈 Professional Admin Theme
+
 - 🎨 Color scheme chuyên nghiệp (blue gradient)
 - 🔄 Smooth transitions và animations tinh tế
 - �️ Hover effects và interactive elements
 - 🌙 Consistent design language cho admin panel
 
 ### ⚡ Performance (Desktop)
+
 - 🚀 Fast loading với Vite HMR
 - 📦 Code splitting tự động cho từng module
 - 🔄 Lazy loading cho heavy components (charts, tables)
 - 💾 Optimized builds với Rollup
 - ⚡ Lightning fast dev server cho development
 
-## 📊 Tính Năng Nổi Bật (Admin Panel)
+## 📊 Tính Năng Nổi Bật (Phiên Bản Hiện Tại)
 
 ### 🎛️ Admin Dashboard Thông Minh
+
 - 📈 Biểu đồ realtime (doanh thu, cư dân, bảo trì)
 - 🎯 KPI tracking và performance metrics
 - 📊 Visual analytics với Chart.js
@@ -200,6 +239,7 @@ src/
 - 📋 Quick actions và shortcuts
 
 ### 👥 Quản Lý Người Dùng Toàn Diện
+
 - ⚡ Quick create tài khoản cư dân chỉ với email
 - 🔍 Advanced search & filter (role, status, apartment)
 - 👥 Bulk operations (import/export, mass update)
@@ -207,6 +247,7 @@ src/
 - 🔑 Role-based access control
 
 ### 💰 Hệ Thống Billing Hoàn Chỉnh
+
 - 📄 Invoice generator với detailed breakdown
 - � Payment status tracking và reminders
 - 📊 Financial reports và revenue analytics
@@ -214,6 +255,7 @@ src/
 - 📱 Integration với Mobile payment notifications
 
 ### 🏢 Ecosystem Integration
+
 - 📱 **Mobile App Connection**: Nhận data từ Resident mobile app
 - 🔄 **Realtime Sync**: Push notifications đến mobile
 - 📊 **Cross-platform Analytics**: Thống kê toàn bộ hệ thống
@@ -222,18 +264,21 @@ src/
 ## 🔧 Scripts Có Sẵn
 
 ### Yarn Commands (Khuyến nghị)
+
 - `yarn dev` - Khởi động Vite development server với HMR
 - `yarn build` - Build cho production với Vite + Rollup
 - `yarn preview` - Preview production build locally
 - `yarn lint` - Kiểm tra lỗi code với ESLint
 
 ### NPM Commands (Thay thế)
+
 - `npm run dev` - Khởi động development server
 - `npm run build` - Build cho production
 - `npm run preview` - Preview production build
 - `npm run lint` - Kiểm tra lỗi code
 
 ### 🎯 Development Tips
+
 ```bash
 # Chạy nhanh với Vite trực tiếp
 yarn vite
@@ -259,12 +304,6 @@ yarn build --analyze
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
-## 📞 Liên Hệ
-
-- 📧 Email: [your-email@example.com]
-- 🌐 Website: [your-website.com]
-- 📱 Phone: [your-phone-number]
 
 ---
 
