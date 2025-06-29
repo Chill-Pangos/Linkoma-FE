@@ -463,16 +463,16 @@ const ResidentServices = () => {
                     description={
                       <Space direction="vertical" size={4}>
                         <Text type="secondary">
-                          <CalendarOutlined /> Ngày đặt:{" "}
+                          <CalendarOutlined /> Ngày đặt:
                           {dayjs(booking.bookingDate).format("DD/MM/YYYY")}
                         </Text>
                         <Text type="secondary">
-                          <ClockCircleOutlined /> Ngày thực hiện:{" "}
-                          {dayjs(booking.serviceDate).format("DD/MM/YYYY")}{" "}
+                          <ClockCircleOutlined /> Ngày thực hiện:
+                          {dayjs(booking.serviceDate).format("DD/MM/YYYY")}
                           {booking.serviceTime}
                         </Text>
                         <Text type="secondary">
-                          <DollarOutlined /> Giá:{" "}
+                          <DollarOutlined /> Giá:
                           {booking.totalPrice.toLocaleString("vi-VN")}đ
                         </Text>
                         {booking.rating && (
@@ -616,7 +616,7 @@ const ResidentServices = () => {
                 {dayjs(selectedBooking.bookingDate).format("DD/MM/YYYY")}
               </Descriptions.Item>
               <Descriptions.Item label="Ngày thực hiện">
-                {dayjs(selectedBooking.serviceDate).format("DD/MM/YYYY")}{" "}
+                {dayjs(selectedBooking.serviceDate).format("DD/MM/YYYY")}
                 {selectedBooking.serviceTime}
               </Descriptions.Item>
               <Descriptions.Item label="Số lượng">

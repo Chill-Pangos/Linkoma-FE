@@ -122,6 +122,8 @@ const AdminLayout = ({ children }) => {
       "/admin/feedback": "Phản hồi cư dân",
       "/admin/notifications": "Thông báo & Sự kiện",
       "/admin/reports": "Báo cáo & Thống kê",
+      "/admin/service-registrations": "Đăng ký dịch vụ",
+      "/admin/apartment-types": "Quản lý loại căn hộ",
       // Manager routes
       "/manager/dashboard": "Dashboard",
       "/manager/residents": "Quản lý cư dân",
@@ -353,7 +355,7 @@ const AdminLayout = ({ children }) => {
                 }}
               >
                 {getPageTitleFromPath(location.pathname)}
-              </Title>{" "}
+              </Title>
               <Breadcrumb
                 items={getBreadcrumbItems(location.pathname)}
                 style={{
@@ -476,7 +478,6 @@ const AdminLayout = ({ children }) => {
             position: "relative",
           }}
         >
-          {" "}
           <div
             style={{
               padding: "0px",

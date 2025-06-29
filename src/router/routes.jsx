@@ -70,14 +70,14 @@ export default function AppRoutes() {
             <AdminLayout>
               <Routes>
                 <Route path="" element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<AdminDashboard />} />{" "}
+                <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="users" element={<UserManagement />} />
                 <Route path="residents" element={<ResidentManagement />} />
                 <Route path="apartments" element={<ApartmentManagement />} />
                 <Route
                   path="apartment-types"
                   element={<ApartmentTypeManagement />}
-                />{" "}
+                />
                 <Route path="services" element={<ServiceManagement />} />
                 <Route
                   path="service-registrations"

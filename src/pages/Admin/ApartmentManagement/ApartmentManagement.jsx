@@ -670,7 +670,7 @@ const ApartmentManagement = () => {
                       <div>
                         <div>{type.typeName}</div>
                         <div style={{ fontSize: "12px", color: "#999" }}>
-                          {type.area}m² - {type.numBedrooms}PN -{" "}
+                          {type.area}m² - {type.numBedrooms}PN -
                           {formatPrice(type.rentFee)}
                         </div>
                       </div>

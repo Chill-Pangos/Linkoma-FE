@@ -433,7 +433,7 @@ const ResidentNotifications = () => {
               </span>
             }
             key="billing"
-          />{" "}
+          />
           <TabPane
             tab={
               <span>
@@ -584,7 +584,7 @@ const ResidentNotifications = () => {
                             <UserOutlined /> {item.sender}
                           </Text>
                           <Text type="secondary">
-                            <CalendarOutlined />{" "}
+                            <CalendarOutlined />
                             {dayjs(item.createdDate).format("DD/MM/YYYY HH:mm")}
                           </Text>
                           {item.apartment && (

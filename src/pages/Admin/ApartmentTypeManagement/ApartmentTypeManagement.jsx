@@ -501,75 +501,88 @@ const ApartmentTypeManagement = () => {
 
       {/* Bộ lọc và tìm kiếm */}
       <Card style={{ marginBottom: "24px" }}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={12} md={6}>
-            <Search
-              placeholder="Tìm kiếm loại căn hộ..."
-              allowClear
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: "100%" }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <InputNumber
-              placeholder="Số phòng ngủ"
-              min={0}
-              max={10}
-              value={filters.numBedrooms}
-              onChange={(value) => handleFilterChange("numBedrooms", value)}
-              style={{ width: "100%" }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <InputNumber
-              placeholder="Số phòng tắm"
-              min={0}
-              max={10}
-              value={filters.numBathrooms}
-              onChange={(value) => handleFilterChange("numBathrooms", value)}
-              style={{ width: "100%" }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <InputNumber
-              placeholder="Diện tích tối thiểu"
-              min={0}
-              value={filters.minArea}
-              onChange={(value) => handleFilterChange("minArea", value)}
-              style={{ width: "100%" }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={3}>
-            <Select
-              value={filters.sortBy}
-              onChange={(value) => handleFilterChange("sortBy", value)}
-              style={{ width: "100%" }}
-            >
-              <Option value="typeName:asc">Tên A-Z</Option>
-              <Option value="typeName:desc">Tên Z-A</Option>
-              <Option value="rentFee:asc">Giá tăng dần</Option>
-              <Option value="rentFee:desc">Giá giảm dần</Option>
-              <Option value="area:asc">Diện tích nhỏ-lớn</Option>
-              <Option value="area:desc">Diện tích lớn-nhỏ</Option>
-              <Option value="createdAt:desc">Mới nhất</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={12} md={3}>
-            <Space>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => {
-                  loadApartmentTypes();
-                  loadStats();
-                }}
+        <div style={{ padding: "8px 0" }}>
+          <Row gutter={[12, 12]} align="middle">
+            <Col xs={24} sm={12} lg={6}>
+              <Search
+                placeholder="Tìm kiếm loại căn hộ..."
+                allowClear
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: "100%" }}
+              />
+            </Col>
+            <Col xs={12} sm={8} lg={3}>
+              <InputNumber
+                placeholder="Phòng ngủ"
+                min={0}
+                max={10}
+                value={filters.numBedrooms}
+                onChange={(value) => handleFilterChange("numBedrooms", value)}
+                style={{ width: "100%" }}
+                size="middle"
+              />
+            </Col>
+            <Col xs={12} sm={8} lg={3}>
+              <InputNumber
+                placeholder="Phòng tắm"
+                min={0}
+                max={10}
+                value={filters.numBathrooms}
+                onChange={(value) => handleFilterChange("numBathrooms", value)}
+                style={{ width: "100%" }}
+                size="middle"
+              />
+            </Col>
+            <Col xs={12} sm={8} lg={3}>
+              <InputNumber
+                placeholder="DT tối thiểu"
+                min={0}
+                value={filters.minArea}
+                onChange={(value) => handleFilterChange("minArea", value)}
+                style={{ width: "100%" }}
+                size="middle"
+              />
+            </Col>
+            <Col xs={12} sm={12} lg={4}>
+              <Select
+                placeholder="Sắp xếp"
+                value={filters.sortBy}
+                onChange={(value) => handleFilterChange("sortBy", value)}
+                style={{ width: "100%" }}
+                size="middle"
               >
-                Làm mới
-              </Button>
-              <Button onClick={handleResetFilters}>Reset</Button>
-            </Space>
-          </Col>
-        </Row>
+                <Option value="typeName:asc">Tên A-Z</Option>
+                <Option value="typeName:desc">Tên Z-A</Option>
+                <Option value="rentFee:asc">Giá tăng dần</Option>
+                <Option value="rentFee:desc">Giá giảm dần</Option>
+                <Option value="area:asc">DT nhỏ-lớn</Option>
+                <Option value="area:desc">DT lớn-nhỏ</Option>
+                <Option value="createdAt:desc">Mới nhất</Option>
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} lg={5}>
+              <Space
+                size="small"
+                style={{ width: "100%", justifyContent: "flex-start" }}
+              >
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={() => {
+                    loadApartmentTypes();
+                    loadStats();
+                  }}
+                  size="middle"
+                >
+                  Làm mới
+                </Button>
+                <Button onClick={handleResetFilters} size="middle">
+                  Reset
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </div>
       </Card>
 
       {/* Bảng danh sách loại căn hộ */}

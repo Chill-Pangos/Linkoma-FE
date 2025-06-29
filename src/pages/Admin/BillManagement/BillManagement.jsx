@@ -622,7 +622,7 @@ const BillManagement = () => {
               }
             />
           </Card>
-        </Col>{" "}
+        </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card
             style={{
@@ -756,7 +756,6 @@ const BillManagement = () => {
         okText={editingBill ? "Cập nhật" : "Tạo mới"}
         cancelText="Hủy"
       >
-        {" "}
         <Form
           form={form}
           layout="vertical"
@@ -781,7 +780,7 @@ const BillManagement = () => {
                 >
                   {apartments.map((apt) => (
                     <Option key={apt.apartmentId} value={apt.apartmentId}>
-                      {apt.apartmentType?.typeName || "N/A"} - Tầng {apt.floor}{" "}
+                      {apt.apartmentType?.typeName || "N/A"} - Tầng {apt.floor}
                       (ID: {apt.apartmentId})
                     </Option>
                   ))}
@@ -965,7 +964,7 @@ const BillManagement = () => {
                 <div style={{ textAlign: "right" }}>
                   <div style={{ marginBottom: "8px" }}>
                     <Text>
-                      Phí thuê căn hộ:{" "}
+                      Phí thuê căn hộ:
                       <strong>
                         {(viewingBill.rentFee || 0).toLocaleString()} VNĐ
                       </strong>
@@ -973,7 +972,7 @@ const BillManagement = () => {
                   </div>
                   <div style={{ marginBottom: "8px" }}>
                     <Text>
-                      Phí dịch vụ:{" "}
+                      Phí dịch vụ:
                       <strong>
                         {(viewingBill.serviceFee || 0).toLocaleString()} VNĐ
                       </strong>
@@ -981,7 +980,7 @@ const BillManagement = () => {
                   </div>
                   <Divider style={{ margin: "8px 0" }} />
                   <Title level={4} style={{ marginBottom: "8px" }}>
-                    Tổng cộng:{" "}
+                    Tổng cộng:
                     <Text style={{ color: "#52c41a" }}>
                       {viewingBill.totalAmount.toLocaleString()} VNĐ
                     </Text>
