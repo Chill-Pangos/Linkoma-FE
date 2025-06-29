@@ -154,7 +154,7 @@ const ResidentManagement = () => {
           </div>
           <div style={{ marginBottom: "4px" }}>
             <Text style={{ fontSize: "12px" }}>
-              <strong>Ngày sinh:</strong>{" "}
+              <strong>Ngày sinh:</strong>
               {record.dateOfBirth
                 ? dayjs(record.dateOfBirth).format("DD/MM/YYYY")
                 : "Chưa cập nhật"}
@@ -404,7 +404,6 @@ const ResidentManagement = () => {
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
             }}
           >
-            {" "}
             <Statistic
               title={
                 <span style={{ color: "rgba(255,255,255,0.8)" }}>
@@ -580,7 +579,6 @@ const ResidentManagement = () => {
           </Space>
         }
       >
-        {" "}
         <Table
           columns={columns}
           dataSource={filteredResidents}
@@ -614,7 +612,6 @@ const ResidentManagement = () => {
         okText={editingResident ? "Cập nhật" : "Thêm mới"}
         cancelText="Hủy"
       >
-        {" "}
         <Form
           form={form}
           layout="vertical"
@@ -761,7 +758,6 @@ const ResidentManagement = () => {
         ]}
         width={600}
       >
-        {" "}
         {viewingResident && (
           <div>
             <div style={{ textAlign: "center", marginBottom: "24px" }}>

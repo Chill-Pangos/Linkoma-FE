@@ -234,7 +234,7 @@ const CreateInvoiceWithDetailsModal = ({ visible, onCancel, onSuccess }) => {
               >
                 {apartments.map((apt) => (
                   <Option key={apt.apartmentId} value={apt.apartmentId}>
-                    {apt.apartmentType?.typeName || "N/A"} - Căn hộ{" "}
+                    {apt.apartmentType?.typeName || "N/A"} - Căn hộ
                     {apt.apartmentId} (
                     {apt.apartmentType?.rentFee
                       ? `${parseFloat(
